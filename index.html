@@ -139,6 +139,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
 .pos-drag-area{position:absolute;inset:0;cursor:crosshair}
 .pos-label{font-size:11px;color:#888;margin-bottom:6px}
 .pos-hint-txt{font-size:11px;color:#aaa;margin-top:6px;text-align:center}
+/* Tag filter bar */
+.tag-bar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+.tag-filter{font-size:12px;padding:5px 13px;border-radius:20px;border:1px solid var(--mist);background:#fff;color:#888;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+.tag-filter:hover{border-color:var(--sage);color:var(--moss)}
+.tag-filter.on{background:var(--moss);color:#fff;border-color:var(--moss)}
+.tag-filter.all.on{background:var(--bark);border-color:var(--bark)}
+/* Tag input */
+.tag-input-wrap{display:flex;flex-wrap:wrap;gap:6px;background:var(--parch);border:1px solid var(--mist);border-radius:10px;padding:7px 10px;min-height:42px;align-items:center;cursor:text;position:relative}
+.tag-input-wrap:focus-within{border-color:var(--sage)}
+.tag-pill{display:inline-flex;align-items:center;gap:4px;background:var(--moss);color:#fff;font-size:12px;padding:3px 9px;border-radius:20px}
+.tag-pill button{background:none;border:none;color:#fff;font-size:14px;cursor:pointer;padding:0;line-height:1;opacity:.7}
+.tag-pill button:hover{opacity:1}
+.tag-input-wrap input{border:none;outline:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--bark);min-width:80px;flex:1}
+.tag-suggest{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--mist);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:60;margin-top:2px;display:none;max-height:160px;overflow-y:auto}
+.tag-suggest.open{display:block}
+.tag-sopt{padding:8px 13px;font-size:13px;cursor:pointer;color:var(--bark)}
+.tag-sopt:hover{background:var(--parch)}
+.tag-sopt.new{color:var(--moss);font-weight:500}
+/* Tag display in detail */
+.detail-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.detail-tag{font-size:12px;padding:4px 11px;border-radius:20px;background:var(--parch);color:var(--moss);border:1px solid var(--mist);font-weight:500}
 </style>
 </head>
 <body>
@@ -166,8 +187,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
 <div class="main">
   <div id="v-grid">
     <div class="remind" id="wr" style="display:none">&#128167; 今日提醒：<strong id="rn" style="margin-left:3px"></strong> 需要澆水了！</div>
+    <!-- Search + tag filter -->
+    <div style="margin-bottom:14px">
+      <input class="fi" id="grid-search" placeholder="🔍 搜尋植物名稱..." oninput="renderGrid()" style="margin-bottom:10px">
+      <div class="tag-bar" id="tag-bar"></div>
+    </div>
     <div class="pgrid" id="pgrid"></div>
-    <div class="empty" id="ge" style="display:none"><div class="big">&#127807;</div><p>還沒有植物，新增第一株吧！</p></div>
+    <div class="empty" id="ge" style="display:none"><div class="big">&#127807;</div><p>沒有符合的植物</p></div>
   </div>
 
   <div id="v-detail" style="display:none">
@@ -175,11 +201,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
       <div class="dh">
         <div class="dh-emoji" id="de"></div>
         <div class="dh-info"><div class="dh-title" id="dn"></div><div class="dh-latin" id="dl"></div></div>
-        <div class="dh-btns">
-          <button class="btn-back" onclick="go('grid')">← 返回</button>
-          <button class="btn-back" onclick="openEdit()" style="background:rgba(255,255,255,.2)">✏️ 編輯</button>
-          <button class="btn-del" onclick="askDel()">&#128465; 刪除</button>
-        </div>
+      </div>
+      <div style="display:flex;gap:8px;padding:12px 22px;background:var(--bark);border-top:1px solid rgba(255,255,255,.1)">
+        <button class="btn-back" onclick="go('grid')">← 返回</button>
+        <button class="btn-back" onclick="openEdit()" style="background:rgba(255,255,255,.2)">✏️ 編輯</button>
+        <button class="btn-del" onclick="askDel()" style="margin-left:auto">&#128465; 刪除</button>
       </div>
       <div class="dbody">
         <div class="dtabs">
@@ -270,6 +296,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
       <div><label class="fl">價格（NT$）</label><input class="fi" type="number" id="fpr" placeholder="0"></div>
     </div>
     <div class="fsec"><label class="fl">澆水頻率（天）</label><input class="fi" type="number" id="fw" placeholder="7" min="1"></div>
+    <div class="fsec">
+      <label class="fl">標籤</label>
+      <div class="tag-input-wrap" id="add-tag-wrap" onclick="document.getElementById('add-tag-input').focus()">
+        <div id="add-tag-pills"></div>
+        <input id="add-tag-input" placeholder="輸入標籤後按 Enter..." oninput="showTagSuggest('add')" onkeydown="handleTagKey(event,'add')" onblur="setTimeout(function(){hideTagSuggest('add')},180)">
+        <div class="tag-suggest" id="add-tag-suggest"></div>
+      </div>
+    </div>
     <div class="fsec"><label class="fl">備註</label><textarea class="ft" id="fno" placeholder="放置位置、特殊習性..."></textarea></div>
     <button class="bsub" onclick="savePlant()">儲存植物 &#127807;</button>
   </div>
@@ -322,6 +356,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
       <div><label class="fl">價格（NT$）</label><input class="fi" type="number" id="epr"></div>
     </div>
     <div class="fsec"><label class="fl">澆水頻率（天）</label><input class="fi" type="number" id="ew" min="1"></div>
+    <div class="fsec">
+      <label class="fl">標籤</label>
+      <div class="tag-input-wrap" id="edit-tag-wrap" onclick="document.getElementById('edit-tag-input').focus()">
+        <div id="edit-tag-pills"></div>
+        <input id="edit-tag-input" placeholder="輸入標籤後按 Enter..." oninput="showTagSuggest('edit')" onkeydown="handleTagKey(event,'edit')" onblur="setTimeout(function(){hideTagSuggest('edit')},180)">
+        <div class="tag-suggest" id="edit-tag-suggest"></div>
+      </div>
+    </div>
     <div class="fsec"><label class="fl">備註</label><textarea class="ft" id="eno"></textarea></div>
     <button class="bsub" onclick="saveEdit()">儲存變更</button>
   </div>
@@ -385,6 +427,16 @@ function getShops() {
   return Object.keys(s).sort();
 }
 
+var curTag = ''; // currently selected filter tag
+var addTags = []; // tags being added in add form
+var editTags = []; // tags being edited in edit form
+
+function getAllTags() {
+  var t = {};
+  plants.forEach(function(p){ (p.tags||[]).forEach(function(tag){ t[tag]=1; }); });
+  return Object.keys(t).sort();
+}
+
 window.go = function(v, el) {
   ['grid','detail','jglobal','water','dash','add'].forEach(function(x){
     var e=document.getElementById('v-'+x); if(e) e.style.display='none';
@@ -399,34 +451,41 @@ window.go = function(v, el) {
   if(v==='add') { newCoverData=''; resetCoverPreview(); }
 };
 
+function renderTagBar() {
+  var tags = getAllTags();
+  var bar = document.getElementById('tag-bar');
+  bar.innerHTML = '<button class="tag-filter all'+(curTag===''?' on':'')+'" onclick="setTagFilter(\'\')">全部</button>' +
+    tags.map(function(t){
+      return '<button class="tag-filter'+(curTag===t?' on':'')+'" onclick="setTagFilter(\''+t+'\')">'+t+'</button>';
+    }).join('');
+}
+window.setTagFilter = function(t) { curTag = t; renderGrid(); };
+
 function renderGrid() {
   var dp = plants.filter(due);
   var wr = document.getElementById('wr');
   if(dp.length){ wr.style.display='flex'; document.getElementById('rn').textContent=dp.map(function(p){return p.name;}).join('、'); }
   else wr.style.display='none';
+
+  renderTagBar();
+
+  var q = (document.getElementById('grid-search')||{value:''}).value.toLowerCase();
+  var filtered = plants.filter(function(p){
+    var matchTag = !curTag || (p.tags||[]).indexOf(curTag) > -1;
+    var matchSearch = !q || p.name.toLowerCase().includes(q) || (p.latin||'').toLowerCase().includes(q);
+    return matchTag && matchSearch;
+  });
+
   var grid=document.getElementById('pgrid'), ge=document.getElementById('ge');
-  if(!plants.length){ grid.innerHTML=''; ge.style.display='block'; return; }
+  if(!filtered.length){ grid.innerHTML=''; ge.style.display='block'; return; }
   ge.style.display='none';
-  grid.innerHTML = plants.map(function(p){
+  grid.innerHTML = filtered.map(function(p){
     var d=due(p), ds=dago(p.lastW);
     var posX = p.coverX||50, posY = p.coverY||50;
     var imgH = p.cover
-      ? '<img src="'+p.cover+'" alt="" style="object-position:'+posX+'% '+posY+'%">'+
-        '<div class="pos-overlay">'+
-          '<div class="pos-hint">調整圖片位置</div>'+
-          '<div class="pos-arrows">'+
-            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',-10,-10)">↖</button>'+
-            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',0,-10)">↑</button>'+
-            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',10,-10)">↗</button>'+
-            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',-10,0)">←</button>'+
-            '<button class="pos-btn center">·</button>'+
-            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',10,0)">→</button>'+
-            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',-10,10)">↙</button>'+
-            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',0,10)">↓</button>'+
-            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',10,10)">↘</button>'+
-          '</div>'+
-        '</div>'
+      ? '<img src="'+p.cover+'" alt="" style="object-position:'+posX+'% '+posY+'%">'
       : '<span class="ef">'+p.emoji+'</span>';
+    var tagsHtml = (p.tags||[]).map(function(t){ return '<span class="tag" style="background:#E8F5E4;color:#3A7D2C">'+t+'</span>'; }).join('');
     return '<div class="card" onclick="openP(\''+p.fbKey+'\')">'+(d?'<div class="wbadge">💧 澆水</div>':'')+
       '<div class="card-img">'+imgH+'</div>'+
       '<div class="card-body">'+
@@ -435,7 +494,7 @@ function renderGrid() {
         '<div>'+
           '<span class="tag '+(p.health==='良好'?'tg':'to')+'">'+p.health+'</span>'+
           (p.shop?'<span class="tag ts">'+p.shop+'</span>':'')+
-          '<span class="tag tw">每'+p.wdays+'天</span>'+
+          tagsHtml+
         '</div>'+
         '<div style="font-size:11px;color:#aaa;margin-top:5px">上次澆水 '+ds+' 天前</div>'+
       '</div></div>';
@@ -456,7 +515,7 @@ window.openP = function(key) {
   ].map(function(a){
     return '<div class="icard"'+(a[2]?' style="grid-column:1/-1"':'')+'>'+
       '<div class="ilabel">'+a[0]+'</div><div class="ivalue">'+a[1]+'</div></div>';
-  }).join('');
+  }).join('') + ((p.tags&&p.tags.length) ? '<div class="icard" style="grid-column:1/-1"><div class="ilabel">標籤</div><div class="detail-tags">'+p.tags.map(function(t){return '<span class="detail-tag">'+t+'</span>';}).join('')+'</div></div>' : '');
   renderHL(p); renderJL(p); renderPh(p);
   window.dtab('info'); window.go('detail');
 };
@@ -554,7 +613,46 @@ function renderW() {
   }).join('');
 }
 
-window.openShopDrop = function(){ filterShops(document.getElementById('fsh').value); };
+// Tag input system
+function renderTagPills(prefix, tagsArr) {
+  document.getElementById(prefix+'-tag-pills').innerHTML = tagsArr.map(function(t,i){
+    return '<span class="tag-pill">'+t+'<button onmousedown="removeTag(event,\''+prefix+'\','+i+')">×</button></span>';
+  }).join('');
+}
+window.removeTag = function(e, prefix, i) {
+  e.preventDefault();
+  if(prefix==='add') addTags.splice(i,1);
+  else editTags.splice(i,1);
+  renderTagPills(prefix, prefix==='add'?addTags:editTags);
+};
+function addTag(prefix, val) {
+  val = val.trim();
+  if(!val) return;
+  var arr = prefix==='add' ? addTags : editTags;
+  if(arr.indexOf(val)===-1) arr.push(val);
+  renderTagPills(prefix, arr);
+  document.getElementById(prefix+'-tag-input').value = '';
+  hideTagSuggest(prefix);
+}
+window.handleTagKey = function(e, prefix) {
+  if(e.key==='Enter'||e.key===',') { e.preventDefault(); addTag(prefix, e.target.value); }
+  if(e.key==='Backspace'&&e.target.value===''&&(prefix==='add'?addTags:editTags).length) {
+    var arr = prefix==='add'?addTags:editTags;
+    arr.pop(); renderTagPills(prefix, arr);
+  }
+};
+window.showTagSuggest = function(prefix) {
+  var q = document.getElementById(prefix+'-tag-input').value.toLowerCase();
+  var all = getAllTags();
+  var arr = prefix==='add'?addTags:editTags;
+  var matches = all.filter(function(t){ return t.toLowerCase().includes(q) && arr.indexOf(t)===-1; });
+  var drop = document.getElementById(prefix+'-tag-suggest');
+  var html = matches.map(function(t){ return '<div class="tag-sopt" onmousedown="addTag(\''+prefix+'\',\''+t+'\')">'+t+'</div>'; }).join('');
+  if(q && matches.indexOf(q)===-1) html += '<div class="tag-sopt new" onmousedown="addTag(\''+prefix+'\',\''+q+'\')">＋ 新增「'+q+'」</div>';
+  drop.innerHTML = html;
+  drop.classList.toggle('open', !!(html));
+};
+window.hideTagSuggest = function(prefix) { document.getElementById(prefix+'-tag-suggest').classList.remove('open'); };
 window.closeShopDrop = function(){ document.getElementById('shop-drop').classList.remove('open'); };
 window.filterShops = function(q) {
   var shops=getShops();
@@ -597,12 +695,14 @@ window.savePlant = function() {
     wdays:parseInt(document.getElementById('fw').value)||7,
     lastW:new Date().toISOString().split('T')[0],
     note:document.getElementById('fno').value.trim(),
+    tags: addTags.slice(),
     health:'良好', journal:[], hlog:[],
     photos:newCoverData?[newCoverData]:[]
   };
   setSyncDot('loading');
   push(plantsRef, plant);
   ['fn','fla','fem','fd','fsh','fpr','fw','fno'].forEach(function(id){document.getElementById(id).value='';});
+  addTags=[]; renderTagPills('add',[]);
   newCoverData='';
   window.go('grid');
 };
@@ -695,6 +795,8 @@ window.openEdit = function() {
   document.getElementById('epr').value = p.price||'';
   document.getElementById('ew').value = p.wdays||7;
   document.getElementById('eno').value = p.note||'';
+  editTags = (p.tags||[]).slice();
+  renderTagPills('edit', editTags);
 
   // Cover position
   editCoverX = p.coverX !== undefined ? p.coverX : 50;
@@ -762,7 +864,8 @@ window.saveEdit = function() {
     wdays: parseInt(document.getElementById('ew').value)||7,
     note: document.getElementById('eno').value.trim(),
     coverX: editCoverX,
-    coverY: editCoverY
+    coverY: editCoverY,
+    tags: editTags.slice()
   };
   setSyncDot('loading');
   update(ref(db,'plants/'+cur), updates);
