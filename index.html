@@ -23,7 +23,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
 .ntab.on{color:var(--moss);border-bottom-color:var(--moss)}
 .ntab:hover:not(.on){color:var(--bark)}
 .main{padding:22px 24px;max-width:880px;margin:0 auto}
-.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
 .card{background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--mist);cursor:pointer;position:relative;transition:transform .15s,box-shadow .15s}
 .card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(61,43,31,.1)}
 .card-img{width:100%;aspect-ratio:1;background:var(--mist);display:flex;align-items:center;justify-content:center;font-size:50px;overflow:hidden;position:relative}
@@ -34,7 +34,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
 .card-latin{font-size:11px;color:#888;font-style:italic;margin-bottom:8px}
 .tag{font-size:10px;padding:3px 7px;border-radius:10px;font-weight:500;display:inline-block;margin:2px 2px 0 0}
 .tg{background:#E8F5E4;color:#3A7D2C}.to{background:#FFF3E0;color:#B06000}.tw{background:#E3F2FD;color:#1565C0}.ts{background:var(--parch);color:var(--bark)}
-.wbadge{position:absolute;top:9px;right:9px;background:#2196F3;color:#fff;font-size:10px;padding:3px 8px;border-radius:10px;font-weight:500;z-index:2}
+.wbadge{position:absolute;top:8px;right:8px;width:12px;height:12px;background:#E53935;border-radius:50%;border:2px solid #fff;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.2)}
 .remind{background:#E3F2FD;border:1px solid #BBDEFB;border-radius:12px;padding:11px 16px;margin-bottom:18px;display:flex;align-items:center;gap:9px;font-size:13px;color:#1565C0}
 .dpanel{background:#fff;border-radius:18px;border:1px solid var(--mist);overflow:hidden}
 .dh{background:var(--bark);color:var(--cream);padding:18px 22px;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
@@ -215,8 +215,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
 </header>
 <nav class="nav">
   <button class="ntab on" onclick="go('grid',this)">我的植物</button>
-  <button class="ntab" onclick="go('jglobal',this)">生長日誌</button>
-  <button class="ntab" onclick="go('water',this)">澆水提醒</button>
   <button class="ntab" onclick="go('mat',this)">🪣 資材</button>
   <button class="ntab" onclick="go('dash',this)">📊 報表</button>
 </nav>
@@ -605,7 +603,7 @@ function renderGrid() {
       ? '<img src="'+p.cover+'" alt="" style="object-position:'+posX+'% '+posY+'%">'
       : '<span class="ef">'+p.emoji+'</span>';
     var tagsHtml = (p.tags||[]).map(function(t){ return '<span class="tag" style="background:#E8F5E4;color:#3A7D2C">'+t+'</span>'; }).join('');
-    return '<div class="card" onclick="openP(\''+p.fbKey+'\')">'+(d?'<div class="wbadge">💧 澆水</div>':'')+
+    return '<div class="card" onclick="openP(\''+p.fbKey+'\')">'+(d?'<div class="wbadge" title="需要澆水"></div>':'')+
       '<div class="card-img">'+imgH+'</div>'+
       '<div class="card-body">'+
         '<div class="card-name">'+p.name+'</div>'+
