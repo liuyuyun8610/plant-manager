@@ -99,6 +99,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
 .loading-screen{position:fixed;inset:0;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:500;font-size:15px;color:var(--bark)}
 .spinner{width:36px;height:36px;border:3px solid var(--mist);border-top-color:var(--leaf);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* Dashboard */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:#fff;border:1px solid var(--mist);border-radius:16px;padding:18px 20px}
+.stat-label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.stat-value{font-family:'Playfair Display',serif;font-size:30px;color:var(--bark);line-height:1}
+.stat-sub{font-size:12px;color:var(--sage);margin-top:4px}
+.dash-section{background:#fff;border:1px solid var(--mist);border-radius:16px;padding:20px;margin-bottom:18px}
+.dash-section h3{font-family:'Playfair Display',serif;font-size:16px;font-weight:400;margin-bottom:14px;color:var(--bark)}
+.shop-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px}
+.shop-bar-label{width:90px;flex-shrink:0;color:var(--bark);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shop-bar-track{flex:1;background:var(--parch);border-radius:6px;height:10px;overflow:hidden}
+.shop-bar-fill{height:100%;background:var(--leaf);border-radius:6px;transition:width .4s}
+.shop-bar-val{min-width:60px;text-align:right;color:#888}
+.rank-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--mist);font-size:13px}
+.rank-no{width:22px;height:22px;border-radius:50%;background:var(--parch);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--moss);flex-shrink:0}
+.rank-emoji{font-size:18px;flex-shrink:0}
+.rank-name{flex:1;font-weight:500}
+.rank-price{color:var(--clay);font-weight:500}
 </style>
 </head>
 <body>
@@ -120,6 +138,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
   <button class="ntab on" onclick="go('grid',this)">我的植物</button>
   <button class="ntab" onclick="go('jglobal',this)">生長日誌</button>
   <button class="ntab" onclick="go('water',this)">澆水提醒</button>
+  <button class="ntab" onclick="go('dash',this)">📊 報表</button>
 </nav>
 
 <div class="main">
@@ -176,6 +195,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
 
   <div id="v-jglobal" style="display:none"><p class="stitle">所有日誌</p><div id="gjl"></div></div>
   <div id="v-water" style="display:none"><p class="stitle">澆水行程</p><div id="wl"></div></div>
+
+  <!-- Dashboard -->
+  <div id="v-dash" style="display:none">
+    <p class="stitle">總報表台</p>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-label">植物總數</div><div class="stat-value" id="d-total">0</div><div class="stat-sub">株室內觀葉</div></div>
+      <div class="stat-card"><div class="stat-label">總花費</div><div class="stat-value" id="d-cost">$0</div><div class="stat-sub">NT 累計支出</div></div>
+      <div class="stat-card"><div class="stat-label">平均單價</div><div class="stat-value" id="d-avg">$0</div><div class="stat-sub">每株平均</div></div>
+      <div class="stat-card"><div class="stat-label">健康良好</div><div class="stat-value" id="d-health">0</div><div class="stat-sub" id="d-health-pct"></div></div>
+    </div>
+    <div class="dash-section">
+      <h3>各店家花費</h3>
+      <div id="d-shop-bars"></div>
+    </div>
+    <div class="dash-section">
+      <h3>最貴的植物 Top 5</h3>
+      <div id="d-rank"></div>
+    </div>
+    <div class="dash-section">
+      <h3>需要澆水</h3>
+      <div id="d-water-list"></div>
+    </div>
+  </div>
 
   <div id="v-add" style="display:none">
     <p class="stitle">新增植物</p>
@@ -281,7 +323,7 @@ function getShops() {
 }
 
 window.go = function(v, el) {
-  ['grid','detail','jglobal','water','add'].forEach(function(x){
+  ['grid','detail','jglobal','water','dash','add'].forEach(function(x){
     var e=document.getElementById('v-'+x); if(e) e.style.display='none';
   });
   document.getElementById('v-'+v).style.display='block';
@@ -291,6 +333,7 @@ window.go = function(v, el) {
   if(v==='grid') renderGrid();
   if(v==='jglobal') renderGJ();
   if(v==='water') renderW();
+  if(v==='dash') renderDash();
   if(v==='add') { newCoverData=''; resetCoverPreview(); }
 };
 
@@ -497,6 +540,59 @@ window.doDelete = function() {
   remove(ref(db,'plants/'+cur));
   cur=null; window.closeOv(); window.go('grid');
 };
+function renderDash() {
+  var total = plants.length;
+  var cost = plants.reduce(function(s,p){return s+(p.price||0);},0);
+  var avg = total ? Math.round(cost/total) : 0;
+  var healthy = plants.filter(function(p){return p.health==='良好';}).length;
+  var pct = total ? Math.round(healthy/total*100) : 0;
+  document.getElementById('d-total').textContent = total;
+  document.getElementById('d-cost').textContent = 'NT$'+cost.toLocaleString();
+  document.getElementById('d-avg').textContent = 'NT$'+avg.toLocaleString();
+  document.getElementById('d-health').textContent = healthy;
+  document.getElementById('d-health-pct').textContent = pct+'% 狀態良好';
+
+  // Shop bars
+  var shopMap = {};
+  plants.forEach(function(p){
+    var s = p.shop||'未知'; shopMap[s] = (shopMap[s]||0)+(p.price||0);
+  });
+  var shopArr = Object.entries(shopMap).sort(function(a,b){return b[1]-a[1];});
+  var maxVal = shopArr.length ? shopArr[0][1] : 1;
+  document.getElementById('d-shop-bars').innerHTML = shopArr.length
+    ? shopArr.map(function(s){
+        var pct = Math.round(s[1]/maxVal*100);
+        return '<div class="shop-bar-row">'+
+          '<div class="shop-bar-label" title="'+s[0]+'">'+s[0]+'</div>'+
+          '<div class="shop-bar-track"><div class="shop-bar-fill" style="width:'+pct+'%"></div></div>'+
+          '<div class="shop-bar-val">NT$'+s[1].toLocaleString()+'</div></div>';
+      }).join('')
+    : '<div style="color:#bbb;font-size:13px">尚無資料</div>';
+
+  // Top 5 most expensive
+  var top5 = plants.slice().sort(function(a,b){return (b.price||0)-(a.price||0);}).slice(0,5);
+  document.getElementById('d-rank').innerHTML = top5.length
+    ? top5.map(function(p,i){
+        return '<div class="rank-row">'+
+          '<div class="rank-no">'+(i+1)+'</div>'+
+          '<div class="rank-emoji">'+p.emoji+'</div>'+
+          '<div class="rank-name">'+p.name+(p.shop?'<span style="font-size:11px;color:#aaa;font-weight:400;margin-left:6px">'+p.shop+'</span>':'')+'</div>'+
+          '<div class="rank-price">NT$'+(p.price||0).toLocaleString()+'</div></div>';
+      }).join('')
+    : '<div style="color:#bbb;font-size:13px">尚無資料</div>';
+
+  // Due watering
+  var dueP = plants.filter(due);
+  document.getElementById('d-water-list').innerHTML = dueP.length
+    ? dueP.map(function(p){
+        return '<div class="rank-row">'+
+          '<div class="rank-emoji">'+p.emoji+'</div>'+
+          '<div class="rank-name">'+p.name+'</div>'+
+          '<span class="tag tw" style="font-size:11px">今天澆水！</span></div>';
+      }).join('')
+    : '<div style="color:#aaa;font-size:13px;padding:8px 0">目前沒有植物需要澆水 ✓</div>';
+}
+
 window.closeOv = function(){ document.getElementById('del-ov').classList.remove('show'); };
 
 </script>
