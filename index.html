@@ -350,7 +350,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
       <label class="fl">標籤</label>
       <div class="tag-input-wrap" id="add-tag-wrap" onclick="document.getElementById('add-tag-input').focus()">
         <div id="add-tag-pills"></div>
-        <input id="add-tag-input" placeholder="輸入標籤後按 Enter..." oninput="showTagSuggest('add')" onkeydown="handleTagKey(event,'add')" onblur="setTimeout(function(){hideTagSuggest('add')},180)">
+        <input id="add-tag-input" placeholder="輸入標籤後按 Enter..." oninput="showTagSuggest('add')" onkeydown="handleTagKey(event,'add')" onblur="hideTagSuggest('add')" onfocus="showTagSuggest('add')">
         <div class="tag-suggest" id="add-tag-suggest"></div>
       </div>
     </div>
@@ -410,7 +410,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
       <label class="fl">標籤</label>
       <div class="tag-input-wrap" id="edit-tag-wrap" onclick="document.getElementById('edit-tag-input').focus()">
         <div id="edit-tag-pills"></div>
-        <input id="edit-tag-input" placeholder="輸入標籤後按 Enter..." oninput="showTagSuggest('edit')" onkeydown="handleTagKey(event,'edit')" onblur="setTimeout(function(){hideTagSuggest('edit')},180)">
+        <input id="edit-tag-input" placeholder="輸入標籤後按 Enter..." oninput="showTagSuggest('edit')" onkeydown="handleTagKey(event,'edit')" onblur="hideTagSuggest('edit')" onfocus="showTagSuggest('edit')">
         <div class="tag-suggest" id="edit-tag-suggest"></div>
       </div>
     </div>
@@ -764,12 +764,12 @@ window.showTagSuggest = function(prefix) {
   var arr = prefix==='add'?addTags:editTags;
   var matches = all.filter(function(t){ return t.toLowerCase().includes(q) && arr.indexOf(t)===-1; });
   var drop = document.getElementById(prefix+'-tag-suggest');
-  var html = matches.map(function(t){ return '<div class="tag-sopt" onmousedown="addTag(\''+prefix+'\',\''+t+'\')">'+t+'</div>'; }).join('');
-  if(q && matches.indexOf(q)===-1) html += '<div class="tag-sopt new" onmousedown="addTag(\''+prefix+'\',\''+q+'\')">＋ 新增「'+q+'」</div>';
+  var html = matches.map(function(t){ return '<div class="tag-sopt" onclick="addTag(\''+prefix+'\',\''+t+'\')">'+t+'</div>'; }).join('');
+  if(q && matches.map(function(t){return t.toLowerCase();}).indexOf(q)===-1) html += '<div class="tag-sopt new" onclick="addTag(\''+prefix+'\',\''+document.getElementById(prefix+'-tag-input').value.trim()+'\')">＋ 新增「'+document.getElementById(prefix+'-tag-input').value.trim()+'」</div>';
   drop.innerHTML = html;
   drop.classList.toggle('open', !!(html));
 };
-window.hideTagSuggest = function(prefix) { document.getElementById(prefix+'-tag-suggest').classList.remove('open'); };
+window.hideTagSuggest = function(prefix) { setTimeout(function(){ document.getElementById(prefix+'-tag-suggest').classList.remove('open'); }, 250); };
 window.closeShopDrop = function(){ document.getElementById('shop-drop').classList.remove('open'); };
 window.filterShops = function(q) {
   var shops=getShops();
