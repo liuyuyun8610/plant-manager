@@ -26,7 +26,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
 .card{background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--mist);cursor:pointer;position:relative;transition:transform .15s,box-shadow .15s}
 .card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(61,43,31,.1)}
-.card-img{width:100%;height:140px;background:var(--mist);display:flex;align-items:center;justify-content:center;font-size:50px;overflow:hidden;position:relative}
+.card-img{width:100%;aspect-ratio:1;background:var(--mist);display:flex;align-items:center;justify-content:center;font-size:50px;overflow:hidden;position:relative}
 .card-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
 .card-img .ef{position:relative;z-index:1}
 .card-body{padding:13px}
@@ -117,6 +117,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
 .rank-emoji{font-size:18px;flex-shrink:0}
 .rank-name{flex:1;font-weight:500}
 .rank-price{color:var(--clay);font-weight:500}
+/* Cover position adjuster */
+.pos-overlay{position:absolute;inset:0;z-index:10;display:none;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:8px;background:rgba(0,0,0,.35)}
+.card-img:hover .pos-overlay{display:flex}
+.pos-hint{color:#fff;font-size:10px;margin-bottom:5px;opacity:.85}
+.pos-arrows{display:grid;grid-template-columns:repeat(3,28px);grid-template-rows:repeat(3,28px);gap:2px}
+.pos-btn{width:28px;height:28px;background:rgba(255,255,255,.25);border:none;border-radius:6px;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pos-btn:hover{background:rgba(255,255,255,.45)}
+.pos-btn.center{background:rgba(255,255,255,.1);cursor:default}
+/* Edit modal */
+.edit-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
+.edit-modal.show{display:flex}
+.edit-box{background:var(--cream);border-radius:20px;padding:28px 24px;width:100%;max-width:520px;margin:auto}
+.edit-box h3{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;margin-bottom:20px}
+.edit-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;margin-top:-4px}
+/* Cover position editor in edit modal */
+.cover-pos-wrap{position:relative;width:100%;aspect-ratio:1;border-radius:14px;overflow:hidden;background:var(--mist);margin-bottom:12px}
+.cover-pos-wrap img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.cover-pos-wrap .no-cover{display:flex;align-items:center;justify-content:center;height:100%;font-size:48px;color:#ccc}
+.pos-crosshair{position:absolute;width:28px;height:28px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.3);transform:translate(-50%,-50%);pointer-events:none;transition:left .15s,top .15s}
+.pos-drag-area{position:absolute;inset:0;cursor:crosshair}
+.pos-label{font-size:11px;color:#888;margin-bottom:6px}
+.pos-hint-txt{font-size:11px;color:#aaa;margin-top:6px;text-align:center}
 </style>
 </head>
 <body>
@@ -155,6 +177,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
         <div class="dh-info"><div class="dh-title" id="dn"></div><div class="dh-latin" id="dl"></div></div>
         <div class="dh-btns">
           <button class="btn-back" onclick="go('grid')">← 返回</button>
+          <button class="btn-back" onclick="openEdit()" style="background:rgba(255,255,255,.2)">✏️ 編輯</button>
           <button class="btn-del" onclick="askDel()">&#128465; 刪除</button>
         </div>
       </div>
@@ -264,6 +287,46 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
   </div>
 </div>
 
+<!-- Edit modal -->
+<div class="edit-modal" id="edit-modal">
+  <div class="edit-box">
+    <h3>編輯植物資料 <button class="edit-close" onclick="closeEdit()">×</button></h3>
+
+    <!-- Cover position adjuster -->
+    <div class="fsec" id="edit-cover-sec">
+      <div class="pos-label">封面圖片位置 <span style="color:#bbb;font-weight:400">（點擊圖片選擇焦點）</span></div>
+      <div class="cover-pos-wrap" id="edit-cover-wrap">
+        <img id="edit-cover-img" src="" alt="">
+        <div class="no-cover" id="edit-cover-none">無封面</div>
+        <div class="pos-drag-area" id="pos-drag-area"></div>
+        <div class="pos-crosshair" id="pos-crosshair"></div>
+      </div>
+      <div class="pos-hint-txt">點擊圖片任意位置來設定顯示焦點</div>
+    </div>
+
+    <div class="fsec"><label class="fl">植物名稱 *</label><input class="fi" id="en" placeholder="例：黃金葛"></div>
+    <div class="fsec"><label class="fl">學名</label><input class="fi" id="ela" placeholder="例：Epipremnum aureum"></div>
+    <div class="fsec frow">
+      <div><label class="fl">表情符號</label><input class="fi" id="eem" maxlength="2"></div>
+      <div><label class="fl">入手日期</label><input class="fi" type="date" id="ed"></div>
+    </div>
+    <div class="fsec frow">
+      <div>
+        <label class="fl">購買店家</label>
+        <div class="shop-wrap">
+          <input class="fi" id="esh" placeholder="輸入或選擇店家..." autocomplete="off"
+            oninput="filterShopsE(this.value)" onfocus="openShopDropE()" onblur="setTimeout(closeShopDropE,180)">
+          <div class="shop-dropdown" id="shop-drop-e"></div>
+        </div>
+      </div>
+      <div><label class="fl">價格（NT$）</label><input class="fi" type="number" id="epr"></div>
+    </div>
+    <div class="fsec"><label class="fl">澆水頻率（天）</label><input class="fi" type="number" id="ew" min="1"></div>
+    <div class="fsec"><label class="fl">備註</label><textarea class="ft" id="eno"></textarea></div>
+    <button class="bsub" onclick="saveEdit()">儲存變更</button>
+  </div>
+</div>
+
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
@@ -325,8 +388,7 @@ function getShops() {
 window.go = function(v, el) {
   ['grid','detail','jglobal','water','dash','add'].forEach(function(x){
     var e=document.getElementById('v-'+x); if(e) e.style.display='none';
-  });
-  document.getElementById('v-'+v).style.display='block';
+  });  document.getElementById('v-'+v).style.display='block';
   document.querySelectorAll('.ntab').forEach(function(x){x.classList.remove('on');});
   if(el) el.classList.add('on');
   else if(v==='grid') document.querySelector('.ntab').classList.add('on');
@@ -347,8 +409,23 @@ function renderGrid() {
   ge.style.display='none';
   grid.innerHTML = plants.map(function(p){
     var d=due(p), ds=dago(p.lastW);
+    var posX = p.coverX||50, posY = p.coverY||50;
     var imgH = p.cover
-      ? '<img src="'+p.cover+'" alt=""><span class="ef" style="display:none">'+p.emoji+'</span>'
+      ? '<img src="'+p.cover+'" alt="" style="object-position:'+posX+'% '+posY+'%">'+
+        '<div class="pos-overlay">'+
+          '<div class="pos-hint">調整圖片位置</div>'+
+          '<div class="pos-arrows">'+
+            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',-10,-10)">↖</button>'+
+            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',0,-10)">↑</button>'+
+            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',10,-10)">↗</button>'+
+            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',-10,0)">←</button>'+
+            '<button class="pos-btn center">·</button>'+
+            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',10,0)">→</button>'+
+            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',-10,10)">↙</button>'+
+            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',0,10)">↓</button>'+
+            '<button class="pos-btn" onclick="movePos(event,\''+p.fbKey+'\',10,10)">↘</button>'+
+          '</div>'+
+        '</div>'
       : '<span class="ef">'+p.emoji+'</span>';
     return '<div class="card" onclick="openP(\''+p.fbKey+'\')">'+(d?'<div class="wbadge">💧 澆水</div>':'')+
       '<div class="card-img">'+imgH+'</div>'+
@@ -594,6 +671,120 @@ function renderDash() {
 }
 
 window.closeOv = function(){ document.getElementById('del-ov').classList.remove('show'); };
+
+// Cover position
+window.movePos = function(e, key, dx, dy) {
+  e.stopPropagation();
+  var p = plants.find(function(x){ return x.fbKey===key; });
+  var nx = Math.min(100, Math.max(0, (p.coverX||50)+dx));
+  var ny = Math.min(100, Math.max(0, (p.coverY||50)+dy));
+  setSyncDot('loading');
+  update(ref(db,'plants/'+key), {coverX:nx, coverY:ny});
+};
+
+// Edit
+var editCoverX = 50, editCoverY = 50;
+
+window.openEdit = function() {
+  var p = plants.find(function(x){ return x.fbKey===cur; }); if(!p) return;
+  document.getElementById('en').value = p.name||'';
+  document.getElementById('ela').value = p.latin||'';
+  document.getElementById('eem').value = p.emoji||'';
+  document.getElementById('ed').value = p.date||'';
+  document.getElementById('esh').value = p.shop||'';
+  document.getElementById('epr').value = p.price||'';
+  document.getElementById('ew').value = p.wdays||7;
+  document.getElementById('eno').value = p.note||'';
+
+  // Cover position
+  editCoverX = p.coverX !== undefined ? p.coverX : 50;
+  editCoverY = p.coverY !== undefined ? p.coverY : 50;
+  var img = document.getElementById('edit-cover-img');
+  var none = document.getElementById('edit-cover-none');
+  var crosshair = document.getElementById('pos-crosshair');
+  if(p.cover) {
+    img.src = p.cover;
+    img.style.display = 'block';
+    img.style.objectPosition = editCoverX+'% '+editCoverY+'%';
+    none.style.display = 'none';
+    crosshair.style.display = 'block';
+  } else {
+    img.style.display = 'none';
+    none.style.display = 'flex';
+    crosshair.style.display = 'none';
+  }
+  updateCrosshair();
+  document.getElementById('edit-modal').classList.add('show');
+};
+
+function updateCrosshair() {
+  var ch = document.getElementById('pos-crosshair');
+  ch.style.left = editCoverX+'%';
+  ch.style.top = editCoverY+'%';
+  var img = document.getElementById('edit-cover-img');
+  if(img.style.display !== 'none') {
+    img.style.objectPosition = editCoverX+'% '+editCoverY+'%';
+  }
+}
+
+// Drag area click/drag to set position
+(function(){
+  var dragging = false;
+  function setFromEvent(e) {
+    var area = document.getElementById('pos-drag-area');
+    var rect = area.getBoundingClientRect();
+    var cx = e.touches ? e.touches[0].clientX : e.clientX;
+    var cy = e.touches ? e.touches[0].clientY : e.clientY;
+    editCoverX = Math.round(Math.min(100, Math.max(0, (cx - rect.left) / rect.width * 100)));
+    editCoverY = Math.round(Math.min(100, Math.max(0, (cy - rect.top) / rect.height * 100)));
+    updateCrosshair();
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    var area = document.getElementById('pos-drag-area');
+    area.addEventListener('mousedown', function(e){ dragging=true; setFromEvent(e); });
+    area.addEventListener('touchstart', function(e){ dragging=true; setFromEvent(e); e.preventDefault(); }, {passive:false});
+    document.addEventListener('mousemove', function(e){ if(dragging) setFromEvent(e); });
+    document.addEventListener('touchmove', function(e){ if(dragging) setFromEvent(e); }, {passive:false});
+    document.addEventListener('mouseup', function(){ dragging=false; });
+    document.addEventListener('touchend', function(){ dragging=false; });
+  });
+})();
+window.closeEdit = function(){ document.getElementById('edit-modal').classList.remove('show'); };
+window.saveEdit = function() {
+  var n = document.getElementById('en').value.trim(); if(!n){alert('請輸入植物名稱');return;}
+  var updates = {
+    name: n,
+    latin: document.getElementById('ela').value.trim(),
+    emoji: document.getElementById('eem').value||'🪴',
+    date: document.getElementById('ed').value,
+    shop: document.getElementById('esh').value.trim(),
+    price: parseInt(document.getElementById('epr').value)||0,
+    wdays: parseInt(document.getElementById('ew').value)||7,
+    note: document.getElementById('eno').value.trim(),
+    coverX: editCoverX,
+    coverY: editCoverY
+  };
+  setSyncDot('loading');
+  update(ref(db,'plants/'+cur), updates);
+  window.closeEdit();
+  document.getElementById('dn').textContent = updates.name;
+  document.getElementById('dl').textContent = updates.latin||'';
+  document.getElementById('de').textContent = updates.emoji;
+};
+
+// Edit modal shop dropdown
+window.openShopDropE = function(){ filterShopsE(document.getElementById('esh').value); };
+window.closeShopDropE = function(){ document.getElementById('shop-drop-e').classList.remove('open'); };
+window.filterShopsE = function(q) {
+  var shops=getShops();
+  var matches=q?shops.filter(function(s){return s.toLowerCase().includes(q.toLowerCase());}):shops;
+  var drop=document.getElementById('shop-drop-e');
+  var html=matches.map(function(s){return '<div class="shop-opt" onmousedown="pickShopE(\''+s+'\')">'+s+'</div>';}).join('');
+  if(q&&!matches.includes(q)) html+='<div class="shop-opt add-new" onmousedown="pickShopE(\''+q+'\')">＋ 新增「'+q+'」</div>';
+  drop.innerHTML=html||(shops.length?'':'<div class="shop-opt" style="color:#bbb;cursor:default">尚無店家記錄</div>');
+  drop.classList.toggle('open', !!(html||shops.length));
+};
+window.pickShopE = function(v){ document.getElementById('esh').value=v; window.closeShopDropE(); };
 
 </script>
 </body>
