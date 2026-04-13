@@ -140,9 +140,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
 .pos-label{font-size:11px;color:#888;margin-bottom:6px}
 .pos-hint-txt{font-size:11px;color:#aaa;margin-top:6px;text-align:center}
 /* Tag filter bar */
-.tag-bar{margin-bottom:18px}
-.tag-bar-row{display:flex;gap:7px;flex-wrap:nowrap;overflow:hidden;align-items:center}
-.tag-bar-row.expanded{flex-wrap:wrap}
+.tag-bar{margin-bottom:18px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tag-bar::-webkit-scrollbar{display:none}
+.tag-bar-row{display:flex;gap:7px;align-items:center;width:max-content;padding-bottom:2px}
+.tag-bar-row.expanded{flex-wrap:wrap;width:auto}
 .tag-filter{font-size:12px;padding:5px 13px;border-radius:20px;border:1px solid var(--mist);background:#fff;color:#888;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;flex-shrink:0}
 .tag-filter:hover{border-color:var(--sage);color:var(--moss)}
 .tag-filter.on{background:var(--moss);color:#fff;border-color:var(--moss)}
@@ -575,22 +576,12 @@ var tagBarExpanded = false;
 function renderTagBar() {
   var tags = getAllTags();
   var row = document.getElementById('tag-bar-row');
+  row.className = 'tag-bar-row';
   var allBtn = '<button class="tag-filter all'+(curTag===''?' on':'')+'" onclick="setTagFilter(\'\')">全部</button>';
   var tagBtns = tags.map(function(t){
     return '<button class="tag-filter'+(curTag===t?' on':'')+'" onclick="setTagFilter(\''+t+'\')">'+t+'</button>';
-  });
-
-  if(tagBarExpanded) {
-    row.className = 'tag-bar-row expanded';
-    row.innerHTML = allBtn + tagBtns.join('') +
-      '<button class="tag-more-btn" onclick="toggleTagBar()">收起 ▲</button>';
-  } else {
-    row.className = 'tag-bar-row';
-    var hidden = tags.length > 4 ? tags.length - 4 : 0;
-    var visible = tagBtns.slice(0, 4);
-    row.innerHTML = allBtn + visible.join('') +
-      (hidden > 0 ? '<button class="tag-more-btn" onclick="toggleTagBar()">+'+hidden+' ▾</button>' : '');
-  }
+  }).join('');
+  row.innerHTML = allBtn + tagBtns;
 }
 window.toggleTagBar = function() { tagBarExpanded = !tagBarExpanded; renderTagBar(); };
 window.setTagFilter = function(t) { curTag = t; renderGrid(); };
