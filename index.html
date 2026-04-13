@@ -390,6 +390,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
         <div class="pos-crosshair" id="pos-crosshair"></div>
       </div>
       <div class="pos-hint-txt">點擊圖片任意位置來設定顯示焦點</div>
+      <div style="margin-top:8px;text-align:center">
+        <button class="mat-btn edit" style="width:auto;padding:6px 16px" onclick="document.getElementById('edit-cover-file').click()">🔄 更換封面照片</button>
+        <input type="file" id="edit-cover-file" accept="image/*" style="display:none" onchange="replaceEditCover(event)">
+      </div>
     </div>
 
     <div class="fsec"><label class="fl">植物名稱 *</label><input class="fi" id="en" placeholder="例：黃金葛"></div>
@@ -479,6 +483,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getDatabase, ref, onValue, set, push, remove, update }
   from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+import { getStorage, ref as sref, uploadBytes, getDownloadURL, deleteObject }
+  from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA5xA-GEvgLlxBF_jQjO73vPs-D5y1whms",
@@ -493,6 +499,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const storage = getStorage(app);
 const plantsRef = ref(db, 'plants');
 const matsRef = ref(db, 'materials');
 
@@ -695,17 +702,41 @@ window.addJ = function() {
   el.value='';
 };
 
-window.upPhoto = function(e) {
-  var f=e.target.files[0]; if(!f) return;
-  var r=new FileReader();
-  r.onload=function(ev){
-    var p = plants.find(function(x){ return x.fbKey===cur; });
-    var photos = (p.photos||[]).concat([ev.target.result]);
-    var cover = p.cover||ev.target.result;
-    setSyncDot('loading');
-    update(ref(db,'plants/'+cur), {photos:photos, cover:cover});
+// Compress image to max 800px and return blob
+function compressImage(file, callback) {
+  var img = new Image();
+  var url = URL.createObjectURL(file);
+  img.onload = function() {
+    var MAX = 800;
+    var w = img.width, h = img.height;
+    if(w > MAX || h > MAX) {
+      if(w > h){ h = Math.round(h * MAX/w); w = MAX; }
+      else { w = Math.round(w * MAX/h); h = MAX; }
+    }
+    var canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    canvas.toBlob(function(blob){ callback(blob); }, 'image/jpeg', 0.82);
+    URL.revokeObjectURL(url);
   };
-  r.readAsDataURL(f);
+  img.src = url;
+}
+
+window.upPhoto = function(e) {
+  var f = e.target.files[0]; if(!f) return;
+  setSyncDot('loading');
+  compressImage(f, function(blob) {
+    var path = 'plants/'+cur+'/'+Date.now()+'.jpg';
+    var storageRef = sref(storage, path);
+    uploadBytes(storageRef, blob).then(function(snap) {
+      return getDownloadURL(snap.ref);
+    }).then(function(url) {
+      var p = plants.find(function(x){ return x.fbKey===cur; });
+      var photos = (p.photos||[]).concat([url]);
+      var cover = p.cover||url;
+      update(ref(db,'plants/'+cur), {photos:photos, cover:cover});
+    }).catch(function(err){ console.error(err); setSyncDot('err'); });
+  });
 };
 
 window.dtab = function(t, el) {
@@ -790,8 +821,10 @@ window.filterShops = function(q) {
 };
 window.pickShop = function(v){ document.getElementById('fsh').value=v; window.closeShopDrop(); };
 
+var newCoverFile = null;
 window.previewCover = function(e) {
   var f=e.target.files[0]; if(!f) return;
+  newCoverFile = f;
   var r=new FileReader();
   r.onload=function(ev){
     newCoverData=ev.target.result;
@@ -805,6 +838,8 @@ function resetCoverPreview(){
   document.getElementById('cover-preview').style.display='none';
   document.getElementById('cover-ph').style.display='block';
   document.getElementById('fcover').value='';
+  newCoverFile = null;
+  newCoverData = '';
 }
 
 window.savePlant = function() {
@@ -813,7 +848,7 @@ window.savePlant = function() {
   var plant = {
     name:n, latin:document.getElementById('fla').value.trim(),
     emoji:document.getElementById('fem').value||'🪴',
-    cover:newCoverData,
+    cover:'', photos:[],
     date:document.getElementById('fd').value,
     shop:document.getElementById('fsh').value.trim(),
     price:parseInt(document.getElementById('fpr').value)||0,
@@ -821,14 +856,23 @@ window.savePlant = function() {
     lastW:new Date().toISOString().split('T')[0],
     note:document.getElementById('fno').value.trim(),
     tags: addTags.slice(),
-    health:'良好', journal:[], hlog:[],
-    photos:newCoverData?[newCoverData]:[]
+    health:'良好', journal:[], hlog:[]
   };
   setSyncDot('loading');
-  push(plantsRef, plant);
+  var newKey = push(plantsRef, plant).key;
+  if(newCoverFile) {
+    compressImage(newCoverFile, function(blob){
+      var path = 'plants/'+newKey+'/cover_'+Date.now()+'.jpg';
+      uploadBytes(sref(storage, path), blob).then(function(snap){
+        return getDownloadURL(snap.ref);
+      }).then(function(url){
+        update(ref(db,'plants/'+newKey), {cover:url, photos:[url]});
+      });
+    });
+  }
   ['fn','fla','fem','fd','fsh','fpr','fw','fno'].forEach(function(id){document.getElementById(id).value='';});
   addTags=[]; renderTagPills('add',[]);
-  newCoverData='';
+  newCoverData=''; newCoverFile=null;
   window.go('grid');
 };
 
@@ -1121,7 +1165,27 @@ function updateCrosshair() {
     document.addEventListener('touchend', function(){ dragging=false; });
   });
 })();
-window.closeEdit = function(){ document.getElementById('edit-modal').classList.remove('show'); };
+var editNewCoverFile = null;
+window.replaceEditCover = function(e) {
+  var f = e.target.files[0]; if(!f) return;
+  editNewCoverFile = f;
+  var r = new FileReader();
+  r.onload = function(ev) {
+    var img = document.getElementById('edit-cover-img');
+    var none = document.getElementById('edit-cover-none');
+    img.src = ev.target.result;
+    img.style.display = 'block';
+    none.style.display = 'none';
+    document.getElementById('pos-crosshair').style.display = 'block';
+    updateCrosshair();
+  };
+  r.readAsDataURL(f);
+};
+
+window.closeEdit = function(){
+  document.getElementById('edit-modal').classList.remove('show');
+  editNewCoverFile = null;
+};
 window.saveEdit = function() {
   var n = document.getElementById('en').value.trim(); if(!n){alert('請輸入植物名稱');return;}
   var updates = {
@@ -1138,8 +1202,22 @@ window.saveEdit = function() {
     tags: editTags.slice()
   };
   setSyncDot('loading');
-  update(ref(db,'plants/'+cur), updates);
-  window.closeEdit();
+  if(editNewCoverFile) {
+    compressImage(editNewCoverFile, function(blob){
+      var path = 'plants/'+cur+'/cover_'+Date.now()+'.jpg';
+      uploadBytes(sref(storage, path), blob).then(function(snap){
+        return getDownloadURL(snap.ref);
+      }).then(function(url){
+        var p = plants.find(function(x){return x.fbKey===cur;});
+        var photos = (p.photos||[]).concat([url]);
+        update(ref(db,'plants/'+cur), Object.assign({}, updates, {cover:url, photos:photos}));
+      });
+    });
+    editNewCoverFile = null;
+  } else {
+    update(ref(db,'plants/'+cur), updates);
+  }
+  document.getElementById('edit-modal').classList.remove('show');
   document.getElementById('dn').textContent = updates.name;
   document.getElementById('dl').textContent = updates.latin||'';
   document.getElementById('de').textContent = updates.emoji;
