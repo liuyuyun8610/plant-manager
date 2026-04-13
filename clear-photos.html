@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>清除照片工具</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#F7F4EF;color:#3D2B1F;padding:24px;max-width:560px;margin:0 auto}
+h1{font-size:20px;margin-bottom:6px}
+p{font-size:13px;color:#888;margin-bottom:20px;line-height:1.6}
+.card{background:#fff;border-radius:14px;padding:20px;margin-bottom:16px;border:1px solid #D4DDD1}
+.warn{background:#FFF3E0;border:1px solid #FFB74D;border-radius:12px;padding:14px 16px;font-size:13px;color:#B06000;margin-bottom:16px;line-height:1.6}
+.btn{border:none;padding:11px 24px;border-radius:20px;font-size:14px;cursor:pointer;width:100%;margin-top:10px;font-family:system-ui;font-weight:500}
+.btn-del{background:#DC3545;color:#fff}
+.btn-del:hover{background:#b02030}
+.btn-del:disabled{background:#aaa;cursor:not-allowed}
+.btn-done{background:#4CAF50;color:#fff}
+.log{background:#1e1e1e;color:#d4d4d4;border-radius:10px;padding:14px;font-size:12px;font-family:monospace;height:280px;overflow-y:auto;margin-top:12px;line-height:1.7}
+.ok{color:#4CAF50}.err{color:#f44336}.info{color:#64B5F6}
+.progress{height:10px;background:#EDE8DF;border-radius:5px;margin-top:12px;overflow:hidden}
+.progress-bar{height:100%;background:#DC3545;border-radius:5px;transition:width .3s;width:0%}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.stat-item{background:#EDE8DF;border-radius:10px;padding:10px;text-align:center}
+.stat-num{font-size:20px;font-weight:600;color:#3D2B1F}
+.stat-label{font-size:10px;color:#888;margin-top:2px}
+</style>
+</head>
+<body>
+<h1>🗑️ 清除照片工具</h1>
+<p>刪除資料庫中所有 base64 照片，保留植物名稱、標籤、價格等所有文字資料。</p>
+
+<div class="warn">
+  ⚠️ 此操作會永久刪除所有植物的封面照片與照片記錄，無法復原。<br>
+  植物的名稱、學名、標籤、日誌、健康記錄、價格等資料完全不受影響。
+</div>
+
+<div class="card">
+  <div style="font-size:14px;font-weight:500;margin-bottom:10px">執行進度</div>
+  <div class="stat">
+    <div class="stat-item"><div class="stat-num" id="s-total">-</div><div class="stat-label">總植物數</div></div>
+    <div class="stat-item"><div class="stat-num" id="s-done">0</div><div class="stat-label">已清除</div></div>
+    <div class="stat-item"><div class="stat-num" id="s-skip">0</div><div class="stat-label">無照片略過</div></div>
+  </div>
+  <div class="progress"><div class="progress-bar" id="prog"></div></div>
+  <button class="btn btn-del" id="start-btn" onclick="confirmStart()">刪除所有舊照片</button>
+</div>
+
+<div class="card">
+  <div style="font-size:14px;font-weight:500;margin-bottom:8px">執行記錄</div>
+  <div class="log" id="log"><span class="info">按下按鈕開始清除照片</span></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import { getDatabase, ref, get, update, query, orderByKey, limitToFirst, startAfter }
+  from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA5xA-GEvgLlxBF_jQjO73vPs-D5y1whms",
+  authDomain: "plant-manager-7f599.firebaseapp.com",
+  databaseURL: "https://plant-manager-7f599-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "plant-manager-7f599",
+  storageBucket: "plant-manager-7f599.firebasestorage.app",
+  messagingSenderId: "937336218253",
+  appId: "1:937336218253:web:eaa987e7523bac08d778c4"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+var totalCount = 0, doneCount = 0, skipCount = 0;
+
+function log(msg, type) {
+  var el = document.getElementById('log');
+  var d = document.createElement('div');
+  d.className = type||'';
+  d.textContent = new Date().toLocaleTimeString()+' '+msg;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+function updateStats() {
+  document.getElementById('s-done').textContent = doneCount;
+  document.getElementById('s-skip').textContent = skipCount;
+  if(totalCount > 0)
+    document.getElementById('prog').style.width = Math.round((doneCount+skipCount)/totalCount*100)+'%';
+}
+
+function isBase64(s){ return s && typeof s==='string' && s.startsWith('data:'); }
+function hasBase64Photos(plant){
+  if(isBase64(plant.cover)) return true;
+  if(plant.photos && plant.photos.some(isBase64)) return true;
+  return false;
+}
+
+window.confirmStart = function(){
+  if(!confirm('確定要刪除所有植物的照片嗎？此操作無法復原。')) return;
+  document.getElementById('start-btn').disabled = true;
+  document.getElementById('start-btn').textContent = '清除中...';
+  startClear();
+};
+
+async function startClear() {
+  log('開始讀取植物索引...', 'info');
+  try {
+    var allKeys = [];
+    var lastKey = null;
+    var hasMore = true;
+
+    while(hasMore) {
+      var q = lastKey
+        ? query(ref(db,'plants'), orderByKey(), startAfter(lastKey), limitToFirst(20))
+        : query(ref(db,'plants'), orderByKey(), limitToFirst(20));
+      var snap = await get(q);
+      if(!snap.exists()){ hasMore=false; break; }
+      var batch = Object.keys(snap.val());
+      allKeys = allKeys.concat(batch);
+      lastKey = batch[batch.length-1];
+      if(batch.length < 20) hasMore = false;
+      log('已讀取 '+allKeys.length+' 筆索引...', 'info');
+      await new Promise(r=>setTimeout(r,500));
+    }
+
+    totalCount = allKeys.length;
+    document.getElementById('s-total').textContent = totalCount;
+    log('共 '+totalCount+' 株植物，逐一清除照片...', 'info');
+
+    for(var i=0; i<allKeys.length; i++) {
+      var key = allKeys[i];
+      try {
+        // Only fetch photos and cover fields to minimize data
+        var coverSnap = await get(ref(db,'plants/'+key+'/cover'));
+        var photosSnap = await get(ref(db,'plants/'+key+'/photos'));
+        var cover = coverSnap.val();
+        var photos = photosSnap.val();
+
+        var needsClear = isBase64(cover) || (photos && Array.isArray(photos) && photos.some(isBase64));
+
+        if(needsClear) {
+          await update(ref(db,'plants/'+key), { cover:'', photos:[] });
+          doneCount++;
+          log('['+(i+1)+'/'+totalCount+'] 已清除照片', 'ok');
+        } else {
+          skipCount++;
+          log('['+(i+1)+'/'+totalCount+'] 無 base64 照片，略過', 'info');
+        }
+      } catch(e) {
+        log('['+(i+1)+'/'+totalCount+'] 錯誤: '+e.message, 'err');
+        skipCount++;
+      }
+      updateStats();
+      await new Promise(r=>setTimeout(r,200));
+    }
+
+    log('✅ 完成！已清除 '+doneCount+' 株植物的照片', 'ok');
+    var btn = document.getElementById('start-btn');
+    btn.textContent = '✅ 清除完成';
+    btn.className = 'btn btn-done';
+    btn.disabled = false;
+
+  } catch(e) {
+    log('❌ 錯誤: '+e.message, 'err');
+    document.getElementById('start-btn').disabled = false;
+    document.getElementById('start-btn').textContent = '重新嘗試';
+  }
+}
+</script>
+</body>
+</html>
