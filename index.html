@@ -349,6 +349,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
       <h3>需要澆水</h3>
       <div id="d-water-list"></div>
     </div>
+
+    <!-- Materials stats -->
+    <p class="stitle" style="margin-top:24px">資材統計</p>
+    <div class="stat-row" style="margin-bottom:18px">
+      <div class="stat-card"><div class="stat-label">資材種類</div><div class="stat-value" id="dm-total">0</div><div class="stat-sub">筆資材</div></div>
+      <div class="stat-card"><div class="stat-label">資材總值</div><div class="stat-value" id="dm-cost">$0</div><div class="stat-sub">NT 庫存估值</div></div>
+      <div class="stat-card"><div class="stat-label">低庫存警示</div><div class="stat-value" id="dm-low">0</div><div class="stat-sub">需補貨</div></div>
+    </div>
+    <div class="dash-section">
+      <h3>各類別庫存數量</h3>
+      <div id="dm-cat-bars"></div>
+    </div>
+    <div class="dash-section">
+      <h3>低庫存清單</h3>
+      <div id="dm-low-list"></div>
+    </div>
   </div>
 
   <div id="v-add" style="display:none">
@@ -487,6 +503,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);
       <input class="fi" type="number" id="m-low" placeholder="例：5" min="0">
     </div>
     <div class="fsec"><label class="fl">備註</label><textarea class="ft" id="m-note" placeholder="存放位置、使用方式..."></textarea></div>
+    <div class="fsec">
+      <label class="fl">照片（選填）</label>
+      <div class="cover-upload" id="mat-cover-area" onclick="document.getElementById('m-photo').click()">
+        <img id="mat-photo-preview" class="cover-preview">
+        <div id="mat-photo-ph"><div style="font-size:26px;margin-bottom:6px">📷</div><div>點擊上傳照片</div></div>
+      </div>
+      <input type="file" id="m-photo" accept="image/*" style="display:none" onchange="previewMatPhoto(event)">
+    </div>
     <button class="bsub" onclick="saveMat()">儲存資材</button>
   </div>
 </div>
@@ -1036,6 +1060,41 @@ function renderDash() {
           '<span class="tag tw" style="font-size:11px">今天澆水！</span></div>';
       }).join('')
     : '<div style="color:#aaa;font-size:13px;padding:8px 0">目前沒有植物需要澆水 ✓</div>';
+
+  // ── Materials stats ──
+  var matTotal = mats.length;
+  var matCost = mats.reduce(function(s,m){ return s + (m.price||0)*(m.qty||0); }, 0);
+  var matLow = mats.filter(function(m){ return m.low && m.qty <= m.low; });
+  document.getElementById('dm-total').textContent = matTotal;
+  document.getElementById('dm-cost').textContent = 'NT$'+matCost.toLocaleString();
+  document.getElementById('dm-low').textContent = matLow.length;
+
+  // Category bars
+  var catMap = {};
+  var CAT_I = {'花盆':'🪴','介質':'🌱','肥料':'💊','其他':'📦'};
+  mats.forEach(function(m){ var c=m.cat||'其他'; catMap[c]=(catMap[c]||0)+(m.qty||0); });
+  var catArr = Object.entries(catMap).sort(function(a,b){return b[1]-a[1];});
+  var catMax = catArr.length ? catArr[0][1] : 1;
+  document.getElementById('dm-cat-bars').innerHTML = catArr.length
+    ? catArr.map(function(c){
+        var pct = Math.round(c[1]/catMax*100);
+        return '<div class="shop-bar-row">'+
+          '<div class="shop-bar-label">'+(CAT_I[c[0]]||'')+''+c[0]+'</div>'+
+          '<div class="shop-bar-track"><div class="shop-bar-fill" style="width:'+pct+'%;background:var(--clay)"></div></div>'+
+          '<div class="shop-bar-val">'+c[1]+' 個</div></div>';
+      }).join('')
+    : '<div style="color:#bbb;font-size:13px">尚無資料</div>';
+
+  // Low stock list
+  document.getElementById('dm-low-list').innerHTML = matLow.length
+    ? matLow.map(function(m){
+        return '<div class="rank-row">'+
+          '<div class="rank-emoji">'+(CAT_I[m.cat]||'📦')+'</div>'+
+          '<div class="rank-name">'+m.name+'<span style="font-size:11px;color:#aaa;margin-left:6px">'+(m.size||'')+'</span></div>'+
+          '<div style="color:#FF9800;font-size:13px;font-weight:500">剩 '+m.qty+(m.unit||'個')+'</div>'+
+        '</div>';
+      }).join('')
+    : '<div style="color:#aaa;font-size:13px;padding:8px 0">所有資材庫存充足 ✓</div>';
 }
 
 // ── MATERIALS ──────────────────────────────────────────
@@ -1056,9 +1115,12 @@ function renderMat() {
     empty.style.display='none';
     grid.innerHTML = filtered.map(function(m){
       var isLow = m.low && m.qty <= m.low;
+      var photoHtml = m.photo
+        ? '<div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:10px 10px 0 0;margin:-16px -16px 10px -16px;width:calc(100% + 32px)"><img src="'+m.photo+'" style="width:100%;height:100%;object-fit:cover" onclick="openMatPhoto(event,\''+m.photo+'\')"></div>'
+        : '<div class="mat-icon">'+(CAT_ICONS[m.cat]||'📦')+'</div>';
       return '<div class="mat-card'+(isLow?' low':'')+'">'+
         (isLow?'<div class="mat-low-badge">庫存低</div>':'')+
-        '<div class="mat-icon">'+(CAT_ICONS[m.cat]||'📦')+'</div>'+
+        photoHtml+
         '<div class="mat-name">'+m.name+'</div>'+
         '<div class="mat-sub">'+(m.size?m.size:'')+(m.size&&m.material?' · ':'')+( m.material||'')+(m.brand?' · '+m.brand:'')+'</div>'+
         '<div><span class="mat-qty">'+m.qty+'</span><span class="mat-qty-unit">'+(m.unit||'個')+'</span></div>'+
@@ -1095,6 +1157,40 @@ function renderMat() {
 
 window.setMatCat = function(c){ curMatCat=c; renderMat(); };
 
+var matPhotoFile = null;
+
+window.previewMatPhoto = function(e) {
+  var f = e.target.files[0]; if(!f) return;
+  matPhotoFile = f;
+  var r = new FileReader();
+  r.onload = function(ev) {
+    var prev = document.getElementById('mat-photo-preview');
+    prev.src = ev.target.result; prev.style.display='block';
+    document.getElementById('mat-photo-ph').style.display='none';
+  };
+  r.readAsDataURL(f);
+};
+
+window.openMatPhoto = function(e, url) {
+  e.stopPropagation();
+  lbPhotos = [url]; lbIdx = 0;
+  document.getElementById('lightbox-img').src = url;
+  document.getElementById('lightbox-counter').textContent = '';
+  document.getElementById('lightbox').classList.add('show');
+};
+
+function resetMatPhotoPreview(existingUrl) {
+  matPhotoFile = null;
+  document.getElementById('m-photo').value = '';
+  var prev = document.getElementById('mat-photo-preview');
+  var ph = document.getElementById('mat-photo-ph');
+  if(existingUrl) {
+    prev.src = existingUrl; prev.style.display='block'; ph.style.display='none';
+  } else {
+    prev.style.display='none'; ph.style.display='block';
+  }
+}
+
 // Add/edit modal
 window.openMatModal = function() {
   editingMatKey = null;
@@ -1105,6 +1201,7 @@ window.openMatModal = function() {
   document.getElementById('m-price').value='';
   document.getElementById('m-low').value='';
   document.getElementById('m-unit').value='個';
+  resetMatPhotoPreview('');
   document.getElementById('mat-modal').classList.add('show');
 };
 window.openMatEdit = function(e, key) {
@@ -1122,12 +1219,17 @@ window.openMatEdit = function(e, key) {
   document.getElementById('m-unit').value = m.unit||'個';
   document.getElementById('m-low').value = m.low||'';
   document.getElementById('m-note').value = m.note||'';
+  resetMatPhotoPreview(m.photo||'');
   document.getElementById('mat-modal').classList.add('show');
 };
-window.closeMatModal = function(){ document.getElementById('mat-modal').classList.remove('show'); };
+window.closeMatModal = function(){
+  document.getElementById('mat-modal').classList.remove('show');
+  matPhotoFile = null;
+};
 
 window.saveMat = function() {
   var n = document.getElementById('m-name').value.trim(); if(!n){alert('請輸入資材名稱');return;}
+  var existing = editingMatKey ? mats.find(function(x){return x.fbKey===editingMatKey;}) : null;
   var data = {
     cat: document.getElementById('m-cat').value,
     name: n,
@@ -1139,17 +1241,36 @@ window.saveMat = function() {
     unit: document.getElementById('m-unit').value||'個',
     low: parseInt(document.getElementById('m-low').value)||0,
     note: document.getElementById('m-note').value.trim(),
-    logs: []
+    logs: existing ? (existing.logs||[]) : [],
+    photo: existing ? (existing.photo||'') : ''
   };
   setSyncDot('loading');
-  if(editingMatKey) {
-    var existing = mats.find(function(x){return x.fbKey===editingMatKey;});
-    data.logs = existing ? (existing.logs||[]) : [];
-    update(ref(db,'materials/'+editingMatKey), data);
-  } else {
-    push(matsRef, data);
+
+  function doSave(photoUrl) {
+    if(photoUrl !== undefined) data.photo = photoUrl;
+    if(editingMatKey) {
+      update(ref(db,'materials/'+editingMatKey), data);
+    } else {
+      push(matsRef, data);
+    }
+    matPhotoFile = null;
+    window.closeMatModal();
   }
-  window.closeMatModal();
+
+  if(matPhotoFile) {
+    compressImage(matPhotoFile, function(blob) {
+      var path = 'materials/'+(editingMatKey||'new_'+Date.now())+'/photo_'+Date.now()+'.jpg';
+      uploadBytes(sref(storage, path), blob).then(function(snap){
+        return getDownloadURL(snap.ref);
+      }).then(function(url){
+        doSave(url);
+      }).catch(function(err){
+        console.error(err); setSyncDot('err');
+      });
+    });
+  } else {
+    doSave();
+  }
 };
 
 // Transaction modal
