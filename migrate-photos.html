@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>照片搬移工具</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#F7F4EF;color:#3D2B1F;padding:24px;max-width:600px;margin:0 auto}
+h1{font-size:20px;margin-bottom:6px}
+p{font-size:13px;color:#888;margin-bottom:20px;line-height:1.6}
+.card{background:#fff;border-radius:14px;padding:20px;margin-bottom:16px;border:1px solid #D4DDD1}
+.btn{background:#4A6741;color:#fff;border:none;padding:10px 24px;border-radius:20px;font-size:14px;cursor:pointer;width:100%;margin-top:12px}
+.btn:hover{background:#3d5535}
+.btn:disabled{background:#aaa;cursor:not-allowed}
+.log{background:#1e1e1e;color:#d4d4d4;border-radius:10px;padding:14px;font-size:12px;font-family:monospace;height:300px;overflow-y:auto;margin-top:12px;line-height:1.6}
+.log .ok{color:#4CAF50}.log .err{color:#f44336}.log .info{color:#64B5F6}.log .warn{color:#FFB74D}
+.progress{height:8px;background:#EDE8DF;border-radius:4px;margin-top:12px;overflow:hidden}
+.progress-bar{height:100%;background:#4A6741;border-radius:4px;transition:width .3s;width:0%}
+.stat{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap}
+.stat-item{flex:1;min-width:100px;background:#EDE8DF;border-radius:10px;padding:10px 14px;text-align:center}
+.stat-num{font-size:22px;font-weight:600;color:#4A6741}
+.stat-label{font-size:11px;color:#888;margin-top:2px}
+</style>
+</head>
+<body>
+<h1>🌿 照片搬移工具</h1>
+<p>將資料庫中的 base64 照片搬移到 Firebase Storage，大幅加快網站載入速度。<br>
+搬移過程中請勿關閉此頁面。</p>
+
+<div class="card">
+  <div style="font-size:14px;font-weight:500;margin-bottom:10px">搬移進度</div>
+  <div class="stat">
+    <div class="stat-item"><div class="stat-num" id="s-total">0</div><div class="stat-label">總植物數</div></div>
+    <div class="stat-item"><div class="stat-num" id="s-done">0</div><div class="stat-label">已完成</div></div>
+    <div class="stat-item"><div class="stat-num" id="s-photos">0</div><div class="stat-label">已搬照片</div></div>
+    <div class="stat-item"><div class="stat-num" id="s-skip">0</div><div class="stat-label">已是網址</div></div>
+  </div>
+  <div class="progress"><div class="progress-bar" id="prog"></div></div>
+  <button class="btn" id="start-btn" onclick="startMigration()">開始搬移</button>
+</div>
+
+<div class="card">
+  <div style="font-size:14px;font-weight:500;margin-bottom:8px">執行記錄</div>
+  <div class="log" id="log"><span class="info">等待開始...</span></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+import { getStorage, ref as sref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA5xA-GEvgLlxBF_jQjO73vPs-D5y1whms",
+  authDomain: "plant-manager-7f599.firebaseapp.com",
+  databaseURL: "https://plant-manager-7f599-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "plant-manager-7f599",
+  storageBucket: "plant-manager-7f599.firebasestorage.app",
+  messagingSenderId: "937336218253",
+  appId: "1:937336218253:web:eaa987e7523bac08d778c4"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const storage = getStorage(app);
+
+function log(msg, type) {
+  var el = document.getElementById('log');
+  var line = document.createElement('div');
+  line.className = type||'';
+  line.textContent = new Date().toLocaleTimeString() + ' ' + msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+function isBase64(s) {
+  return s && s.startsWith('data:');
+}
+
+function base64ToBlob(dataUrl) {
+  var parts = dataUrl.split(',');
+  var mime = parts[0].match(/:(.*?);/)[1];
+  var binary = atob(parts[1]);
+  var arr = new Uint8Array(binary.length);
+  for(var i=0;i<binary.length;i++) arr[i]=binary.charCodeAt(i);
+  return new Blob([arr], {type: mime});
+}
+
+async function uploadBase64(key, dataUrl, filename) {
+  var blob = base64ToBlob(dataUrl);
+  var path = 'plants/'+key+'/'+filename;
+  var snap = await uploadBytes(sref(storage, path), blob);
+  return await getDownloadURL(snap.ref);
+}
+
+window.startMigration = async function() {
+  document.getElementById('start-btn').disabled = true;
+  document.getElementById('start-btn').textContent = '搬移中...';
+  log('開始讀取植物資料...', 'info');
+
+  onValue(ref(db,'plants'), async function(snapshot) {
+    var data = snapshot.val();
+    if(!data){ log('沒有植物資料', 'warn'); return; }
+
+    var entries = Object.entries(data);
+    var total = entries.length;
+    var done = 0, photosMoved = 0, skipped = 0;
+
+    document.getElementById('s-total').textContent = total;
+    log('找到 '+total+' 株植物，開始逐一處理...', 'info');
+
+    for(var i=0; i<entries.length; i++) {
+      var key = entries[i][0];
+      var plant = entries[i][1];
+      var updates = {};
+      var changed = false;
+
+      log('處理：'+(plant.name||key), '');
+
+      // Migrate cover
+      if(isBase64(plant.cover)) {
+        try {
+          var url = await uploadBase64(key, plant.cover, 'cover_0.jpg');
+          updates.cover = url;
+          changed = true;
+          photosMoved++;
+          log('  ✓ 封面照片搬移完成', 'ok');
+        } catch(e) {
+          log('  ✗ 封面失敗: '+e.message, 'err');
+        }
+      } else if(plant.cover) {
+        skipped++;
+      }
+
+      // Migrate photos array
+      if(plant.photos && plant.photos.length) {
+        var newPhotos = [];
+        for(var j=0; j<plant.photos.length; j++) {
+          if(isBase64(plant.photos[j])) {
+            try {
+              var purl = await uploadBase64(key, plant.photos[j], 'photo_'+j+'_'+Date.now()+'.jpg');
+              newPhotos.push(purl);
+              photosMoved++;
+              log('  ✓ 照片 '+(j+1)+' 搬移完成', 'ok');
+            } catch(e) {
+              log('  ✗ 照片 '+(j+1)+' 失敗: '+e.message, 'err');
+              newPhotos.push(plant.photos[j]); // keep original on failure
+            }
+          } else {
+            newPhotos.push(plant.photos[j]);
+          }
+        }
+        if(JSON.stringify(newPhotos) !== JSON.stringify(plant.photos)) {
+          updates.photos = newPhotos;
+          changed = true;
+        }
+      }
+
+      // If cover was base64 but photos[0] is now URL, sync cover
+      if(updates.photos && updates.photos.length && updates.cover === undefined && isBase64(plant.cover)) {
+        updates.cover = updates.photos[0];
+      }
+
+      if(changed) {
+        try {
+          await update(ref(db,'plants/'+key), updates);
+          log('  ✓ 資料庫更新完成', 'ok');
+        } catch(e) {
+          log('  ✗ 資料庫更新失敗: '+e.message, 'err');
+        }
+      } else {
+        log('  → 無需搬移', 'info');
+      }
+
+      done++;
+      document.getElementById('s-done').textContent = done;
+      document.getElementById('s-photos').textContent = photosMoved;
+      document.getElementById('s-skip').textContent = skipped;
+      document.getElementById('prog').style.width = Math.round(done/total*100)+'%';
+
+      // Small delay to avoid rate limiting
+      await new Promise(function(r){setTimeout(r,300)});
+    }
+
+    log('✅ 全部完成！共搬移 '+photosMoved+' 張照片', 'ok');
+    document.getElementById('start-btn').textContent = '✅ 搬移完成';
+    document.getElementById('start-btn').style.background = '#4CAF50';
+  }, {onlyOnce: true});
+};
+</script>
+</body>
+</html>
