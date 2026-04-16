@@ -1023,9 +1023,12 @@ function addTag(prefix, val) {
   var arr = prefix==='add' ? addTags : editTags;
   if(arr.indexOf(val)===-1) arr.push(val);
   renderTagPills(prefix, arr);
-  document.getElementById(prefix+'-tag-input').value = '';
-  hideTagSuggest(prefix);
+  var input = document.getElementById(prefix+'-tag-input');
+  input.value = '';
+  input.focus();
+  document.getElementById(prefix+'-tag-suggest').classList.remove('open');
 }
+window.addTag = addTag;
 window.handleTagKey = function(e, prefix) {
   if(e.key==='Enter'||e.key===',') { e.preventDefault(); addTag(prefix, e.target.value); }
   if(e.key==='Backspace'&&e.target.value===''&&(prefix==='add'?addTags:editTags).length) {
@@ -1039,12 +1042,19 @@ window.showTagSuggest = function(prefix) {
   var arr = prefix==='add'?addTags:editTags;
   var matches = all.filter(function(t){ return t.toLowerCase().includes(q) && arr.indexOf(t)===-1; });
   var drop = document.getElementById(prefix+'-tag-suggest');
-  var html = matches.map(function(t){ return '<div class="tag-sopt" onclick="addTag(\''+prefix+'\',\''+t+'\')">'+t+'</div>'; }).join('');
-  if(q && matches.map(function(t){return t.toLowerCase();}).indexOf(q)===-1) html += '<div class="tag-sopt new" onclick="addTag(\''+prefix+'\',\''+document.getElementById(prefix+'-tag-input').value.trim()+'\')">＋ 新增「'+document.getElementById(prefix+'-tag-input').value.trim()+'」</div>';
+  var rawVal = document.getElementById(prefix+'-tag-input').value.trim();
+  var html = matches.map(function(t){
+    return '<div class="tag-sopt" onmousedown="event.preventDefault();addTag(\''+prefix+'\',\''+t+'\')">'+t+'</div>';
+  }).join('');
+  if(rawVal && matches.map(function(t){return t.toLowerCase();}).indexOf(rawVal.toLowerCase())===-1) {
+    html += '<div class="tag-sopt new" onmousedown="event.preventDefault();addTag(\''+prefix+'\',\''+rawVal+'\')">＋ 新增「'+rawVal+'」</div>';
+  }
   drop.innerHTML = html;
   drop.classList.toggle('open', !!(html));
 };
-window.hideTagSuggest = function(prefix) { setTimeout(function(){ document.getElementById(prefix+'-tag-suggest').classList.remove('open'); }, 250); };
+window.hideTagSuggest = function(prefix) {
+  setTimeout(function(){ document.getElementById(prefix+'-tag-suggest').classList.remove('open'); }, 200);
+};
 window.closeShopDrop = function(){ document.getElementById('shop-drop').classList.remove('open'); };
 window.filterShops = function(q) {
   var shops=getShops();
