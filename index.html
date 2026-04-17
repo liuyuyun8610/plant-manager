@@ -809,12 +809,10 @@ function renderGrid() {
       var thumb = p.cover
         ? '<div class="list-thumb"><img src="'+p.cover+'" alt=""></div>'
         : '<div class="list-thumb">'+p.emoji+'</div>';
-      var tagsStr = (p.tags||[]).slice(0,2).join(' · ');
       return '<div class="list-row" onclick="openP(\''+p.fbKey+'\')">'+
         thumb+
         '<div class="list-name">'+
           '<div class="n">'+p.name+'</div>'+
-          '<div class="s">'+(p.latin||'')+(tagsStr?' · '+tagsStr:'')+'</div>'+
         '</div>'+
         '<div class="list-right">'+
           '<div style="display:flex;align-items:center;gap:5px">'+
@@ -832,18 +830,15 @@ function renderGrid() {
       var imgH = p.cover
         ? '<img src="'+p.cover+'" alt="" style="object-position:'+posX+'% '+posY+'%">'
         : '<span class="ef">'+p.emoji+'</span>';
-      var tagsHtml = (p.tags||[]).map(function(t){ return '<span class="tag" style="background:#E8F5E4;color:#3A7D2C">'+t+'</span>'; }).join('');
+      var tagsHtml = '';
       var dotColor = ds<=4?'#4CAF50':ds<=7?'#FFC107':'#F44336';
       return '<div class="card" onclick="openP(\''+p.fbKey+'\')" style="position:relative">'+
         '<div class="wdot" style="background:'+dotColor+';position:absolute;top:9px;left:9px;width:11px;height:11px;border-radius:50%;border:2px solid #fff;z-index:2;box-shadow:0 1px 3px rgba(0,0,0,.25)" title="上次澆水 '+ds+' 天前"></div>'+
         '<div class="card-img">'+imgH+'</div>'+
         '<div class="card-body">'+
           '<div class="card-name">'+p.name+'</div>'+
-          '<div class="card-latin">'+(p.latin||'—')+'</div>'+
           '<div>'+
             '<span class="tag '+(p.health==='良好'?'tg':'to')+'">'+p.health+'</span>'+
-            (p.shop?'<span class="tag ts">'+p.shop+'</span>':'')+
-            tagsHtml+
           '</div>'+
           '<div style="font-size:11px;color:#aaa;margin-top:5px">上次澆水 '+ds+' 天前</div>'+
         '</div>'+
