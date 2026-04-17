@@ -153,7 +153,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 .pos-label{font-size:11px;color:#888;margin-bottom:6px}
 .pos-hint-txt{font-size:11px;color:#aaa;margin-top:6px;text-align:center}
 /* Tag filter bar */
-.tag-bar{margin-bottom:18px;overflow-x:scroll;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
+.tag-bar-wrap{position:relative;margin-bottom:18px}
+.tag-bar{overflow-x:scroll;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
 .tag-bar::-webkit-scrollbar{display:none}
 .tag-bar-row{display:flex;gap:7px;align-items:center;width:max-content;min-width:100%;padding-bottom:4px}
 .tag-bar-row.expanded{flex-wrap:wrap;width:auto}
@@ -162,6 +163,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 .tag-filter.on{background:var(--moss);color:#fff;border-color:var(--moss)}
 .tag-filter.all.on{background:var(--bark);border-color:var(--bark)}
 .tag-more-btn{font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--mist);background:var(--parch);color:#888;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0}
+.tag-arr{position:absolute;top:0;bottom:4px;width:32px;background:none;border:none;cursor:pointer;font-size:16px;color:var(--bark);display:flex;align-items:center;justify-content:center;z-index:5;opacity:.7;transition:opacity .15s}
+.tag-arr:hover{opacity:1}
+.tag-arr.left{left:0;background:linear-gradient(to right,var(--cream) 55%,transparent)}
+.tag-arr.right{right:0;background:linear-gradient(to left,var(--cream) 55%,transparent)}
 /* Tag input */
 .tag-input-wrap{display:flex;flex-wrap:wrap;gap:6px;background:var(--parch);border:1px solid var(--mist);border-radius:10px;padding:7px 10px;min-height:42px;align-items:center;cursor:text;position:relative}
 .tag-input-wrap:focus-within{border-color:var(--sage)}
@@ -305,7 +310,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
           <button class="view-btn" id="vbtn-list" onclick="setViewMode('list')" title="列表">☰</button>
         </div>
       </div>
-      <div class="tag-bar" id="tag-bar"><div class="tag-bar-row" id="tag-bar-row"></div></div>
+      <div class="tag-bar-wrap">
+        <button class="tag-arr left" onclick="scrollTagBar(-120)">‹</button>
+        <div class="tag-bar" id="tag-bar"><div class="tag-bar-row" id="tag-bar-row"></div></div>
+        <button class="tag-arr right" onclick="scrollTagBar(120)">›</button>
+      </div>
     </div>
     <div id="plant-view-container"></div>
     <div class="empty" id="ge" style="display:none"><div class="big">&#127807;</div><p>沒有符合的植物</p></div>
@@ -859,6 +868,10 @@ function renderTagBar() {
 }
 window.toggleTagBar = function() { tagBarExpanded = !tagBarExpanded; renderTagBar(); };
 window.setTagFilter = function(t) { curTag = t; renderGrid(); };
+window.scrollTagBar = function(dx) {
+  var el = document.getElementById('tag-bar');
+  if(el) el.scrollBy({left:dx, behavior:'smooth'});
+};
 
 window.openP = function(key) {
   cur = key;
