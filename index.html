@@ -300,7 +300,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 
 <div class="main">
   <div id="v-grid">
-    <div class="remind" id="wr" style="display:none">&#128167; 今日提醒：<strong id="rn" style="margin-left:3px"></strong> 需要澆水了！</div>
     <!-- Search + tag filter + view toggle -->
     <div style="margin-bottom:14px">
       <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
@@ -783,11 +782,6 @@ window.setViewMode = function(mode) {
 };
 
 function renderGrid() {
-  var dp = plants.filter(due);
-  var wr = document.getElementById('wr');
-  if(dp.length){ wr.style.display='flex'; document.getElementById('rn').textContent=dp.map(function(p){return p.name;}).join('、'); }
-  else wr.style.display='none';
-
   renderTagBar();
 
   var q = (document.getElementById('grid-search')||{value:''}).value.toLowerCase();
@@ -795,7 +789,7 @@ function renderGrid() {
     var matchTag = !curTag || (p.tags||[]).indexOf(curTag) > -1;
     var matchSearch = !q || p.name.toLowerCase().includes(q) || (p.latin||'').toLowerCase().includes(q);
     return matchTag && matchSearch;
-  });
+  }).sort(function(a,b){ return dago(b.lastW) - dago(a.lastW); });
 
   var container = document.getElementById('plant-view-container');
   var ge = document.getElementById('ge');
@@ -1483,7 +1477,8 @@ window.showShopDetail = function(shopName) {
   document.getElementById('shop-list-view').style.display='none';
   document.getElementById('shop-detail-view').style.display='block';
   document.getElementById('shop-detail-title').textContent = shopName;
-  var shopPlants = plants.filter(function(p){ return (p.shop||'（未記錄店家）')===shopName; });
+  var shopPlants = plants.filter(function(p){ return (p.shop||'（未記錄店家）')===shopName; })
+    .sort(function(a,b){ return dago(b.lastW)-dago(a.lastW); });
   var totalCost = shopPlants.reduce(function(s,p){return s+(p.price||0);},0);
   document.getElementById('ss-count').textContent = shopPlants.length;
   document.getElementById('ss-cost').textContent = 'NT$'+totalCost.toLocaleString();
@@ -1498,7 +1493,6 @@ window.showShopDetail = function(shopName) {
         thumb+
         '<div class="list-name">'+
           '<div class="n">'+p.name+'</div>'+
-          '<div class="s">'+(p.latin||'')+'</div>'+
         '</div>'+
         '<div class="list-right">'+
           '<div style="font-size:13px;font-weight:500;color:var(--clay)">'+(p.price?'NT$'+p.price:'—')+'</div>'+
@@ -1506,6 +1500,7 @@ window.showShopDetail = function(shopName) {
             '<span class="list-days">'+ds+'天前</span>'+
             '<div class="list-wdot" style="background:'+dotColor+'"></div>'+
           '</div>'+
+          '<button class="list-qwater" onclick="quickWater(event,\''+p.fbKey+'\')">💧 澆水</button>'+
         '</div>'+
       '</div>';
     }).join('')+'</div>';
