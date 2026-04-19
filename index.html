@@ -274,6 +274,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 .shop-item-name{flex:1;font-weight:500;font-size:15px}
 .shop-item-meta{font-size:12px;color:#888;text-align:right}
 .shop-back{display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer;color:var(--moss);font-size:14px;font-weight:500;background:none;border:none;font-family:'DM Sans',sans-serif;padding:0}
+/* Pagination */
+.pagination{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:18px;flex-wrap:wrap}
+.pg-btn{background:#fff;border:1px solid var(--mist);border-radius:10px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--bark);transition:all .15s;min-width:36px}
+.pg-btn:hover{border-color:var(--sage);color:var(--moss)}
+.pg-btn.on{background:var(--bark);color:#fff;border-color:var(--bark)}
+.pg-btn:disabled{opacity:.35;cursor:not-allowed}
+.pg-info{font-size:13px;color:#888;padding:0 4px}
 </style>
 </head>
 <body>
@@ -303,7 +310,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
     <!-- Search + tag filter + view toggle -->
     <div style="margin-bottom:14px">
       <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
-        <input class="fi" id="grid-search" placeholder="🔍 搜尋植物名稱..." oninput="renderGrid()" style="flex:1;margin:0">
+        <input class="fi" id="grid-search" placeholder="🔍 搜尋植物名稱..." oninput="curPage=0;renderGrid()" style="flex:1;margin:0">
         <div class="view-toggle">
           <button class="view-btn on" id="vbtn-grid" onclick="setViewMode('grid')" title="格狀">⊞</button>
           <button class="view-btn" id="vbtn-list" onclick="setViewMode('list')" title="列表">☰</button>
@@ -316,6 +323,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
       </div>
     </div>
     <div id="plant-view-container"></div>
+    <div class="pagination" id="grid-pagination"></div>
     <div class="empty" id="ge" style="display:none"><div class="big">&#127807;</div><p>沒有符合的植物</p></div>
     <div class="stats-bar" id="grid-stats-bar" style="display:none">
       <span>植株數<strong id="gs-count">0</strong></span>
@@ -773,11 +781,15 @@ window.go = function(v, el) {
 
 var tagBarExpanded = false;
 var viewMode = 'grid';
+var curPage = 0;
+var PAGE_SIZE = 30;
+
 
 window.setViewMode = function(mode) {
   viewMode = mode;
   document.getElementById('vbtn-grid').classList.toggle('on', mode==='grid');
   document.getElementById('vbtn-list').classList.toggle('on', mode==='list');
+  curPage = 0;
   renderGrid();
 };
 
@@ -795,7 +807,14 @@ function renderGrid() {
   var ge = document.getElementById('ge');
   var statsBar = document.getElementById('grid-stats-bar');
 
-  if(!filtered.length){ container.innerHTML=''; ge.style.display='block'; statsBar.style.display='none'; return; }
+  var pgEl = document.getElementById('grid-pagination');
+
+  if(!filtered.length){ container.innerHTML=''; ge.style.display='block'; statsBar.style.display='none'; pgEl.innerHTML=''; return; }
+  ge.style.display='none';
+
+  var totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  if(curPage >= totalPages) curPage = 0;
+  var paged = filtered.slice(curPage * PAGE_SIZE, (curPage+1) * PAGE_SIZE);
   ge.style.display='none';
 
   // Stats bar
@@ -804,8 +823,20 @@ function renderGrid() {
   document.getElementById('gs-cost').textContent = 'NT$'+totalCost.toLocaleString();
   statsBar.style.display='flex';
 
+  // Pagination
+  if(totalPages > 1) {
+    var pgHtml = '<button class="pg-btn" onclick="gotoPage('+(curPage-1)+')" '+(curPage===0?'disabled':'')+'>&#8249;</button>';
+    var pgStart = Math.max(0, curPage-2), pgEnd = Math.min(totalPages-1, curPage+2);
+    if(pgStart > 0) pgHtml += '<button class="pg-btn" onclick="gotoPage(0)">1</button>'+(pgStart>1?'<span class="pg-info">…</span>':'');
+    for(var pi=pgStart;pi<=pgEnd;pi++) pgHtml += '<button class="pg-btn'+(pi===curPage?' on':'')+'" onclick="gotoPage('+pi+')">'+(pi+1)+'</button>';
+    if(pgEnd < totalPages-1) pgHtml += (pgEnd<totalPages-2?'<span class="pg-info">…</span>':'')+'<button class="pg-btn" onclick="gotoPage('+(totalPages-1)+')">'+totalPages+'</button>';
+    pgHtml += '<button class="pg-btn" onclick="gotoPage('+(curPage+1)+')" '+(curPage===totalPages-1?'disabled':'')+'>&#8250;</button>';
+    pgHtml += '<span class="pg-info">第 '+(curPage+1)+' / '+totalPages+' 頁</span>';
+    pgEl.innerHTML = pgHtml;
+  } else { pgEl.innerHTML = ''; }
+
   if(viewMode === 'list') {
-    container.innerHTML = '<div class="plist">'+filtered.map(function(p){
+    container.innerHTML = '<div class="plist">'+paged.map(function(p){
       var ds = dago(p.lastW);
       var dotCls = ds<=4?'green':ds<=7?'yellow':'red';
       var dotColor = ds<=4?'#4CAF50':ds<=7?'#FFC107':'#F44336';
@@ -827,7 +858,7 @@ function renderGrid() {
       '</div>';
     }).join('')+'</div>';
   } else {
-    container.innerHTML = '<div class="pgrid" id="pgrid">'+filtered.map(function(p){
+    container.innerHTML = '<div class="pgrid">'+paged.map(function(p){
       var ds = dago(p.lastW);
       var posX = p.coverX||50, posY = p.coverY||50;
       var imgH = p.cover
@@ -850,6 +881,12 @@ function renderGrid() {
     }).join('')+'</div>';
   }
 }
+window.gotoPage = function(p) {
+  curPage = p;
+  renderGrid();
+  window.scrollTo({top:0, behavior:'smooth'});
+};
+
 function renderTagBar() {
   var tags = getAllTags();
   var row = document.getElementById('tag-bar-row');
@@ -861,7 +898,7 @@ function renderTagBar() {
   row.innerHTML = allBtn + tagBtns;
 }
 window.toggleTagBar = function() { tagBarExpanded = !tagBarExpanded; renderTagBar(); };
-window.setTagFilter = function(t) { curTag = t; renderGrid(); };
+window.setTagFilter = function(t) { curTag = t; curPage = 0; renderGrid(); };
 window.scrollTagBar = function(dx) {
   var el = document.getElementById('tag-bar');
   if(el) el.scrollBy({left:dx, behavior:'smooth'});
