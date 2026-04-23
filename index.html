@@ -1647,7 +1647,7 @@ function renderKnow() {
   empty.style.display='none';
   el.innerHTML = filtered.map(function(k){
     var tagsHtml = (k.tags||[]).map(function(t){ return '<span class="tag ts">'+t+'</span>'; }).join('');
-    return '<div class="know-card" onclick="openKnow(''+k.fbKey+'')">'+
+    return '<div class="know-card" onclick="openKnow(\''+k.fbKey+'\')">'+
       '<div class="know-title">'+k.title+'</div>'+
       '<div class="know-body">'+(k.body||'')+'</div>'+
       '<div class="know-meta">'+tagsHtml+'<span class="know-date">'+(k.date||'')+'</span></div>'+
@@ -1701,14 +1701,14 @@ window.queryAI = function() {
       max_tokens: 1000,
       messages: [{
         role: 'user',
-        content: '請用繁體中文簡潔說明「'+name+'」這種植物的照護方式，包含：
-1. 澆水頻率與注意事項
-2. 光線需求
-3. 溫度與濕度要求
-4. 常見問題與注意事項
-5. 施肥建議
-
-請用條列式回答，每項簡短扼要。'
+        content: '請用繁體中文簡潔說明「'+name+'」這種植物的照護方式，包含：\n'
+          + '1. 澆水頻率與注意事項\n'
+          + '2. 光線需求\n'
+          + '3. 溫度與濕度要求\n'
+          + '4. 常見問題與注意事項\n'
+          + '5. 施肥建議\n'
+          + '\n'
+          + '請用條列式回答，每項簡短扼要。'
       }]
     })
   })
