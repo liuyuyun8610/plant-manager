@@ -2,8 +2,17 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
 <title>植物誌</title>
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2C4A28">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="植物誌">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -20,8 +29,8 @@
   --gold-light:#E8D9BC;
   --ink:#1C2E1A;
 }
-body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
-.header{background:var(--moss);color:var(--cream);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+.header{background:var(--moss);color:var(--cream);padding:14px 24px;padding-top:calc(14px + env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .brand{display:flex;align-items:center;gap:10px}
 .logo{width:30px;height:30px;background:var(--gold);border-radius:50% 50% 50% 8px;display:flex;align-items:center;justify-content:center;font-size:15px}
 .brand h1{font-family:'Playfair Display',serif;font-size:19px;font-weight:400;letter-spacing:.03em}
@@ -312,6 +321,89 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 .ai-loading{display:inline-block;width:16px;height:16px;border:2px solid var(--mist);border-top-color:var(--moss);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
 .ext-link{display:inline-flex;align-items:center;gap:5px;background:var(--parch);border:1px solid var(--mist);border-radius:10px;padding:6px 12px;font-size:12px;color:var(--bark);cursor:pointer;text-decoration:none;font-family:'DM Sans',sans-serif}
 .ext-link:hover{border-color:var(--sage);color:var(--moss)}
+
+/* ===== App shell: bottom nav ===== */
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:200;background:rgba(28,46,26,.97);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;justify-content:space-around;align-items:stretch;border-top:1px solid rgba(255,255,255,.08);padding-bottom:env(safe-area-inset-bottom)}
+.bnav{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 0 7px;color:rgba(255,255,255,.5);font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:.02em;transition:color .12s}
+.bnav .bnav-i{font-size:21px;line-height:1}
+.bnav.on{color:var(--gold)}
+.bnav:active{color:var(--gold)}
+/* ===== Home / 工作台 ===== */
+.home-greet{margin-bottom:18px}
+.home-greet .hg-hi{font-family:'Playfair Display',serif;font-size:22px;font-weight:400;color:var(--ink)}
+.home-greet .hg-sub{font-size:13px;color:#999;margin-top:2px}
+.home-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:22px}
+.hstat{background:#fff;border:1px solid var(--mist);border-radius:13px;padding:12px 8px;text-align:center;cursor:pointer;transition:transform .12s}
+.hstat:active{transform:scale(.96)}
+.hstat .hv{font-family:'Playfair Display',serif;font-size:24px;line-height:1;color:var(--ink)}
+.hstat .hl{font-size:10px;color:#999;margin-top:5px;letter-spacing:.02em}
+.hstat.alert .hv{color:#E07A4E}
+.hsec{margin-bottom:24px}
+.hsec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.hsec-head h3{font-family:'Playfair Display',serif;font-size:16px;font-weight:400;color:var(--ink)}
+.hsec-more{font-size:12px;color:var(--sage);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.quick-btn{background:#fff;border:1px solid var(--mist);border-radius:14px;padding:14px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:transform .12s,border-color .12s}
+.quick-btn:active{transform:scale(.95);border-color:var(--gold)}
+.quick-btn .qi{font-size:25px;line-height:1}
+.quick-btn .qt{font-size:12px;color:var(--ink);font-weight:500}
+.todo-card{background:#fff;border:1px solid var(--mist);border-radius:14px;overflow:hidden}
+.todo-row{display:flex;align-items:center;gap:11px;padding:11px 14px;border-bottom:1px solid var(--mist)}
+.todo-row:last-child{border-bottom:none}
+.todo-thumb{width:40px;height:40px;border-radius:10px;overflow:hidden;background:var(--gold-light);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px}
+.todo-thumb img{width:100%;height:100%;object-fit:cover}
+.todo-info{flex:1;min-width:0}
+.todo-info .tn{font-weight:500;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.todo-info .td{font-size:11px;color:#E07A4E;margin-top:1px}
+.todo-info .td.ok{color:var(--sage)}
+.btn-todo-water{background:var(--moss);color:#fff;border:none;padding:7px 13px;border-radius:11px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0}
+.btn-todo-water:active{background:var(--bark)}
+.tl-row{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid var(--mist)}
+.tl-row:last-child{border-bottom:none}
+.tl-icon{font-size:18px;flex-shrink:0;width:24px;text-align:center}
+.tl-body{flex:1;min-width:0}
+.tl-top{font-size:13px;color:var(--ink)}
+.tl-top b{font-weight:500}
+.tl-date{font-size:11px;color:#aaa;margin-top:1px}
+.fav-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:10px}
+.fav-cell{cursor:pointer}
+.fav-img{width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:32px}
+.fav-img img{width:100%;height:100%;object-fit:cover}
+.fav-name{font-size:11px;color:#777;margin-top:5px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.value-card{background:linear-gradient(135deg,var(--moss),var(--bark));color:var(--cream);border-radius:16px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+.value-card .vlabel{font-size:12px;opacity:.7}
+.value-card .vnum{font-family:'Playfair Display',serif;font-size:26px;margin-top:3px}
+.value-card .vnum.hidden-amt{letter-spacing:3px}
+.value-eye{background:rgba(255,255,255,.15);border:none;color:#fff;width:38px;height:38px;border-radius:50%;font-size:17px;cursor:pointer;flex-shrink:0}
+/* ===== Bottom sheet (plant picker / quick log) ===== */
+.sheet-ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:650;display:none;align-items:flex-end;justify-content:center}
+.sheet-ov.show{display:flex}
+.sheet{background:var(--cream);width:100%;max-width:520px;border-radius:22px 22px 0 0;padding:18px 18px calc(20px + env(safe-area-inset-bottom));max-height:82vh;display:flex;flex-direction:column;animation:sheetup .22s ease}
+@keyframes sheetup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:38px;height:4px;border-radius:2px;background:var(--mist);margin:0 auto 14px}
+.sheet h3{font-family:'Playfair Display',serif;font-size:18px;font-weight:400;margin-bottom:14px;color:var(--ink);text-align:center}
+.sheet-search{margin-bottom:12px}
+.sheet-list{overflow-y:auto;-webkit-overflow-scrolling:touch}
+.pick-row{display:flex;align-items:center;gap:11px;padding:10px 6px;border-bottom:1px solid var(--mist);cursor:pointer}
+.pick-row:active{background:var(--parch)}
+.pick-thumb{width:42px;height:42px;border-radius:10px;overflow:hidden;background:var(--gold-light);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px}
+.pick-thumb img{width:100%;height:100%;object-fit:cover}
+.pick-name{flex:1;min-width:0}
+.pick-name .pn{font-weight:500;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick-name .ps{font-size:11px;color:#aaa}
+/* Toast */
+.toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--bark);color:#fff;padding:11px 20px;border-radius:22px;font-size:13px;z-index:800;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* More page */
+.more-list{display:flex;flex-direction:column;gap:10px}
+.more-item{background:#fff;border:1px solid var(--mist);border-radius:14px;padding:15px 18px;display:flex;align-items:center;gap:13px;cursor:pointer;font-size:15px;color:var(--ink);transition:transform .12s}
+.more-item:active{transform:scale(.99);background:var(--parch)}
+.more-item .mi-ic{font-size:21px}
+.more-item .mi-tx{flex:1}
+.more-item .mi-tx .mi-sub{font-size:11px;color:#aaa;margin-top:2px}
+.more-item .mi-arr{color:#ccc;font-size:17px}
+.install-hint{background:var(--gold-light);border:1px solid var(--gold);border-radius:14px;padding:14px 16px;font-size:13px;color:#7A5C2E;line-height:1.6;margin-top:14px}
+@media(min-width:560px){.home-stats{gap:14px}.quick-grid{grid-template-columns:repeat(6,1fr)}}
 </style>
 </head>
 <body>
@@ -329,16 +421,52 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
   </div>
   <button class="btn-add" onclick="go('add')">＋ 新增植物</button>
 </header>
-<nav class="nav">
-  <button class="ntab on" onclick="go('grid',this)">我的植物</button>
-  <button class="ntab" onclick="go('shop',this)">🏪 店家</button>
-  <button class="ntab" onclick="go('mat',this)">🪣 資材</button>
-  <button class="ntab" onclick="go('know',this)">📚 知識庫</button>
-  <button class="ntab" onclick="go('dash',this)">📊 報表</button>
-</nav>
-
 <div class="main">
-  <div id="v-grid">
+
+  <!-- 首頁 / 工作台 -->
+  <div id="v-home">
+    <div class="home-greet">
+      <div class="hg-hi" id="home-hi">我的植物</div>
+      <div class="hg-sub" id="home-sub">今天的照顧任務</div>
+    </div>
+    <div class="home-stats" id="home-stats"></div>
+
+    <div class="hsec">
+      <div class="hsec-head"><h3>快速紀錄</h3></div>
+      <div class="quick-grid">
+        <button class="quick-btn" onclick="quickAction('water')"><span class="qi">💧</span><span class="qt">澆水</span></button>
+        <button class="quick-btn" onclick="quickAction('photo')"><span class="qi">📷</span><span class="qt">拍照</span></button>
+        <button class="quick-btn" onclick="quickAction('fert')"><span class="qi">🌿</span><span class="qt">施肥</span></button>
+        <button class="quick-btn" onclick="quickAction('repot')"><span class="qi">🪴</span><span class="qt">換盆</span></button>
+        <button class="quick-btn" onclick="quickAction('pest')"><span class="qi">🐛</span><span class="qt">病蟲</span></button>
+        <button class="quick-btn" onclick="go('add')"><span class="qi">➕</span><span class="qt">新增</span></button>
+      </div>
+    </div>
+
+    <div class="hsec" id="home-todo-sec">
+      <div class="hsec-head"><h3>今日待辦</h3><button class="hsec-more" onclick="bgo('grid')">全部植物 ›</button></div>
+      <div class="todo-card" id="home-todo"></div>
+    </div>
+
+    <div class="hsec" id="home-fav-sec">
+      <div class="hsec-head"><h3 id="home-fav-title">最近照顧</h3></div>
+      <div class="fav-strip" id="home-fav"></div>
+    </div>
+
+    <div class="hsec" id="home-recent-sec">
+      <div class="hsec-head"><h3>最近更新</h3></div>
+      <div class="todo-card" style="padding:4px 14px" id="home-recent"></div>
+    </div>
+
+    <div class="hsec">
+      <div class="value-card">
+        <div><div class="vlabel">收藏總價值</div><div class="vnum" id="home-value">NT$0</div></div>
+        <button class="value-eye" id="home-eye" onclick="togglePrivacy()">👁</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="v-grid" style="display:none">
     <!-- Search + tag filter + view toggle -->
     <div style="margin-bottom:14px">
       <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
@@ -388,6 +516,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
       </div>
       <div style="display:flex;gap:8px;padding:12px 22px;background:var(--bark);border-top:1px solid rgba(255,255,255,.1)">
         <button class="btn-back" onclick="go('grid')">← 返回</button>
+        <button class="btn-back" id="fav-btn" onclick="toggleFav()">☆ 收藏</button>
         <button class="btn-back" onclick="openEdit()" style="background:rgba(255,255,255,.2)">✏️ 編輯</button>
         <button class="btn-del" onclick="askDel()" style="margin-left:auto">&#128465; 刪除</button>
       </div>
@@ -538,6 +667,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
     </div>
     <div class="fsec"><label class="fl">備註</label><textarea class="ft" id="fno" placeholder="放置位置、特殊習性..."></textarea></div>
     <button class="bsub" onclick="savePlant()">儲存植物 &#127807;</button>
+  </div>
+
+  <!-- 更多 -->
+  <div id="v-more" style="display:none">
+    <p class="stitle">更多</p>
+    <div class="more-list">
+      <div class="more-item" onclick="bgo('dash')"><span class="mi-ic">📊</span><div class="mi-tx">報表與統計<div class="mi-sub">花費、健康率、店家分析、資材庫存</div></div><span class="mi-arr">›</span></div>
+      <div class="more-item" onclick="bgo('know')"><span class="mi-ic">📚</span><div class="mi-tx">知識庫<div class="mi-sub">照護心得、病蟲害、介質肥料筆記</div></div><span class="mi-arr">›</span></div>
+      <div class="more-item" onclick="bgo('jglobal')"><span class="mi-ic">📝</span><div class="mi-tx">所有日誌<div class="mi-sub">全部植物的觀察紀錄時間軸</div></div><span class="mi-arr">›</span></div>
+      <div class="more-item" onclick="bgo('water')"><span class="mi-ic">💧</span><div class="mi-tx">澆水行程<div class="mi-sub">每株的澆水週期與下次時間</div></div><span class="mi-arr">›</span></div>
+      <div class="more-item" onclick="togglePrivacy()"><span class="mi-ic">🙈</span><div class="mi-tx">隱私模式<div class="mi-sub" id="more-privacy-sub">隱藏所有金額</div></div><span class="mi-arr">›</span></div>
+    </div>
+    <div class="install-hint" id="install-hint">
+      📲 <b>裝到手機桌面當 App 用</b><br>
+      iPhone：用 Safari 開啟 → 點下方「分享」→「加入主畫面」<br>
+      Android：Chrome 選單 →「安裝應用程式 / 加到主畫面」
+    </div>
   </div>
 </div>
 
@@ -706,6 +852,39 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
   </div>
 </div>
 
+<!-- Bottom app nav -->
+<nav class="bottom-nav">
+  <button class="bnav on" id="bn-home" onclick="bgo('home')"><span class="bnav-i">🏠</span>首頁</button>
+  <button class="bnav" id="bn-grid" onclick="bgo('grid')"><span class="bnav-i">🪴</span>植物</button>
+  <button class="bnav" id="bn-shop" onclick="bgo('shop')"><span class="bnav-i">🏪</span>店家</button>
+  <button class="bnav" id="bn-mat" onclick="bgo('mat')"><span class="bnav-i">🪣</span>資材</button>
+  <button class="bnav" id="bn-more" onclick="bgo('more')"><span class="bnav-i">⋯</span>更多</button>
+</nav>
+
+<!-- Plant picker bottom sheet -->
+<div class="sheet-ov" id="picker-ov" onclick="if(event.target===this)closePicker()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h3 id="picker-title">選擇植物</h3>
+    <input class="fi sheet-search" id="picker-search" placeholder="🔍 搜尋植物..." oninput="renderPicker()">
+    <div class="sheet-list" id="picker-list"></div>
+  </div>
+</div>
+
+<!-- Quick log sheet (施肥/換盆/病蟲 備註) -->
+<div class="sheet-ov" id="qlog-ov" onclick="if(event.target===this)closeQlog()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h3 id="qlog-title">紀錄</h3>
+    <div style="text-align:center;font-size:14px;color:#888;margin-bottom:14px" id="qlog-plant"></div>
+    <textarea class="ft" id="qlog-note" placeholder="補充備註（選填）..."></textarea>
+    <button class="bsub" style="margin-top:14px" onclick="confirmQlog()">完成紀錄</button>
+  </div>
+</div>
+
+<input type="file" id="quick-pup" accept="image/*" style="display:none" onchange="quickPhotoUpload(event)">
+<div class="toast" id="toast"></div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getDatabase, ref, onValue, set, push, remove, update }
@@ -809,7 +988,7 @@ onValue(plantsRef, function(snapshot) {
   }) : [];
   document.getElementById('loading').style.display = 'none';
   setSyncDot('ok');
-  renderGrid();
+  refreshActive();
   if(cur) {
     var p = plants.find(function(x){ return x.fbKey===cur; });
     if(p) { renderHL(p); renderJL(p); renderPh(p); }
@@ -839,13 +1018,21 @@ function getAllTags() {
   return Object.keys(t).sort();
 }
 
+var activeView = 'home';
+function setBnavActive(v){
+  var map={home:'bn-home',grid:'bn-grid',detail:'bn-grid',add:'bn-grid',shop:'bn-shop',
+           mat:'bn-mat',more:'bn-more',dash:'bn-more',know:'bn-more',jglobal:'bn-more',water:'bn-more'};
+  document.querySelectorAll('.bnav').forEach(function(x){x.classList.remove('on');});
+  var id=map[v]; if(id){ var el=document.getElementById(id); if(el) el.classList.add('on'); }
+}
 window.go = function(v, el) {
-  ['grid','detail','jglobal','water','mat','dash','shop','know','add'].forEach(function(x){
+  ['home','grid','detail','jglobal','water','mat','dash','shop','know','add','more'].forEach(function(x){
     var e=document.getElementById('v-'+x); if(e) e.style.display='none';
-  });  document.getElementById('v-'+v).style.display='block';
-  document.querySelectorAll('.ntab').forEach(function(x){x.classList.remove('on');});
-  if(el) el.classList.add('on');
-  else if(v==='grid') document.querySelector('.ntab').classList.add('on');
+  });
+  var target=document.getElementById('v-'+v); if(target) target.style.display='block';
+  activeView = v;
+  setBnavActive(v);
+  if(v==='home') renderHome();
   if(v==='grid') renderGrid();
   if(v==='jglobal') renderGJ();
   if(v==='water') renderW();
@@ -853,7 +1040,234 @@ window.go = function(v, el) {
   if(v==='shop') renderShopList();
   if(v==='know') renderKnow();
   if(v==='dash') renderDash();
+  if(v==='more') renderMore();
   if(v==='add') { newCoverData=''; resetCoverPreview(); }
+  window.scrollTo(0,0);
+};
+window.bgo = function(v){ window.go(v); };
+
+function refreshActive(){
+  if(activeView==='home') renderHome();
+  else if(activeView==='grid') renderGrid();
+  else if(activeView==='mat') renderMat();
+  else if(activeView==='know') renderKnow();
+  else if(activeView==='dash') renderDash();
+  else if(activeView==='shop') renderShopList();
+}
+
+// ── Helpers: 縮圖 / 金額 / 事件 ──────────────────────────
+function thumbOf(p){ return p.coverThumb || p.cover || ''; }
+function fmtMoney(n){ return 'NT$'+(n||0).toLocaleString(); }
+function uploadImage(blob, path){ return uploadBytes(sref(storage, path), blob).then(function(s){ return getDownloadURL(s.ref); }); }
+function compressThumb(file, cb){
+  var img=new Image(); var url=URL.createObjectURL(file);
+  img.onload=function(){
+    var MAX=360, w=img.width, h=img.height;
+    if(w>MAX||h>MAX){ if(w>h){h=Math.round(h*MAX/w);w=MAX;} else {w=Math.round(w*MAX/h);h=MAX;} }
+    var c=document.createElement('canvas'); c.width=w; c.height=h;
+    c.getContext('2d').drawImage(img,0,0,w,h);
+    c.toBlob(function(b){ cb(b); },'image/jpeg',0.7);
+    URL.revokeObjectURL(url);
+  };
+  img.src=url;
+}
+function processCover(key, file, done){
+  compressImage(file, function(full){
+    uploadImage(full,'plants/'+key+'/cover_'+Date.now()+'.jpg').then(function(curl){
+      compressThumb(file, function(tb){
+        uploadImage(tb,'plants/'+key+'/thumb_'+Date.now()+'.jpg')
+          .then(function(turl){ done(curl,turl); })
+          .catch(function(){ done(curl,''); });
+      });
+    }).catch(function(err){ console.error(err); setSyncDot('err'); });
+  });
+}
+
+// ── Toast ────────────────────────────────────────────────
+var toastTimer=null;
+window.toast = function(msg){
+  var t=document.getElementById('toast'); if(!t) return;
+  t.textContent=msg; t.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ t.classList.remove('show'); }, 1900);
+};
+
+// ── 隱私模式 ─────────────────────────────────────────────
+var privacyOn=false;
+window.togglePrivacy = function(){
+  privacyOn=!privacyOn;
+  try{ localStorage.setItem('plant_privacy', privacyOn?'1':'0'); }catch(e){}
+  if(activeView==='home') renderHome();
+  if(activeView==='more') renderMore();
+  window.toast(privacyOn?'已隱藏金額 🙈':'已顯示金額 👁');
+};
+
+// ── 首頁工作台 ───────────────────────────────────────────
+function recentEvents(limit){
+  var ev=[];
+  plants.forEach(function(p){
+    (p.journal||[]).forEach(function(j){ ev.push({date:j.date,icon:'📝',name:p.name,text:j.text,key:p.fbKey}); });
+    (p.hlog||[]).forEach(function(h){ ev.push({date:h.date,icon:h.t==='g'?'✅':'⚠️',name:p.name,text:h.s,key:p.fbKey}); });
+    if(p.lastW) ev.push({date:p.lastW,icon:'💧',name:p.name,text:'澆水',key:p.fbKey});
+  });
+  ev.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  return ev.slice(0, limit||6);
+}
+function renderHome(){
+  var total=plants.length;
+  var dueList=plants.filter(due).sort(function(a,b){ return (dago(b.lastW)-b.wdays)-(dago(a.lastW)-a.wdays); });
+  var attention=plants.filter(function(p){ return p.health && p.health!=='良好'; });
+  var weekAgo=Date.now()-7*86400000, weekLogs=0;
+  plants.forEach(function(p){ (p.journal||[]).forEach(function(j){ if(new Date(j.date).getTime()>=weekAgo) weekLogs++; }); });
+
+  document.getElementById('home-stats').innerHTML =
+    '<div class="hstat" onclick="bgo(\'grid\')"><div class="hv">'+total+'</div><div class="hl">植物總數</div></div>'+
+    '<div class="hstat'+(dueList.length?' alert':'')+'" onclick="bgo(\'grid\')"><div class="hv">'+dueList.length+'</div><div class="hl">待澆水</div></div>'+
+    '<div class="hstat'+(attention.length?' alert':'')+'" onclick="bgo(\'grid\')"><div class="hv">'+attention.length+'</div><div class="hl">需注意</div></div>'+
+    '<div class="hstat" onclick="bgo(\'more\')"><div class="hv">'+weekLogs+'</div><div class="hl">本週紀錄</div></div>';
+
+  var todoEl=document.getElementById('home-todo');
+  if(dueList.length){
+    todoEl.innerHTML=dueList.slice(0,5).map(function(p){
+      var ds=dago(p.lastW), over=ds-p.wdays, th=thumbOf(p);
+      var thumb=th?'<div class="todo-thumb"><img loading="lazy" decoding="async" src="'+th+'" alt=""></div>':'<div class="todo-thumb">'+p.emoji+'</div>';
+      return '<div class="todo-row">'+thumb+
+        '<div class="todo-info" onclick="openP(\''+p.fbKey+'\')"><div class="tn">'+p.name+'</div>'+
+        '<div class="td">已 '+ds+' 天未澆'+(over>0?'（逾期 '+over+' 天）':'')+'</div></div>'+
+        '<button class="btn-todo-water" onclick="quickWaterDone(\''+p.fbKey+'\')">💧 澆水</button></div>';
+    }).join('');
+  } else {
+    todoEl.innerHTML='<div class="todo-row" style="justify-content:center"><div class="td ok" style="font-size:13px">今天沒有需要澆水的植物 ✓</div></div>';
+  }
+
+  var favs=plants.filter(function(p){return p.fav;});
+  var favList=(favs.length?favs:plants.slice().sort(function(a,b){return (b.lastW||'').localeCompare(a.lastW||'');})).slice(0,6);
+  document.getElementById('home-fav-title').textContent=favs.length?'收藏的植物':'最近照顧';
+  var favSec=document.getElementById('home-fav-sec');
+  if(!favList.length){ favSec.style.display='none'; }
+  else{
+    favSec.style.display='block';
+    document.getElementById('home-fav').innerHTML=favList.map(function(p){
+      var th=thumbOf(p);
+      var img=th?'<img loading="lazy" decoding="async" src="'+th+'" alt="">':p.emoji;
+      return '<div class="fav-cell" onclick="openP(\''+p.fbKey+'\')"><div class="fav-img">'+img+'</div><div class="fav-name">'+p.name+'</div></div>';
+    }).join('');
+  }
+
+  var ev=recentEvents(6);
+  var recSec=document.getElementById('home-recent-sec');
+  if(ev.length){
+    recSec.style.display='block';
+    document.getElementById('home-recent').innerHTML=ev.map(function(e){
+      return '<div class="tl-row" onclick="openP(\''+e.key+'\')"><div class="tl-icon">'+e.icon+'</div>'+
+        '<div class="tl-body"><div class="tl-top"><b>'+e.name+'</b> '+e.text+'</div><div class="tl-date">'+e.date+'</div></div></div>';
+    }).join('');
+  } else { recSec.style.display='none'; }
+
+  var totalVal=plants.reduce(function(s,p){return s+(p.price||0);},0);
+  var vEl=document.getElementById('home-value');
+  vEl.textContent=privacyOn?'••••••':fmtMoney(totalVal);
+  vEl.classList.toggle('hidden-amt',privacyOn);
+  document.getElementById('home-eye').textContent=privacyOn?'🙈':'👁';
+}
+function renderMore(){
+  var sub=document.getElementById('more-privacy-sub');
+  if(sub) sub.textContent=privacyOn?'目前：金額已隱藏':'隱藏所有金額';
+}
+
+// ── 快速紀錄 + 選植物 sheet ──────────────────────────────
+var pickerCb=null;
+window.quickAction=function(type){
+  if(!plants.length){ window.toast('還沒有植物，先新增一株吧'); return; }
+  if(type==='water'){ window.openPicker('選擇要澆水的植物', function(key){ window.closePicker(); window.quickWaterDone(key); }); return; }
+  if(type==='photo'){ window.openPicker('選擇要拍照的植物', function(key){ window.closePicker(); window.startQuickPhoto(key); }); return; }
+  var labels={fert:'🌿 施肥',repot:'🪴 換盆',pest:'🐛 病蟲觀察'};
+  window.openPicker('選擇植物', function(key){ window.closePicker(); window.openQlog(key,type,labels[type]); });
+};
+window.openPicker=function(title, cb){
+  pickerCb=cb;
+  document.getElementById('picker-title').textContent=title;
+  document.getElementById('picker-search').value='';
+  window.renderPicker();
+  document.getElementById('picker-ov').classList.add('show');
+};
+window.renderPicker=function(){
+  var q=(document.getElementById('picker-search').value||'').toLowerCase();
+  var list=plants.slice().sort(function(a,b){return a.name.localeCompare(b.name);})
+    .filter(function(p){ return !q||p.name.toLowerCase().includes(q)||(p.latin||'').toLowerCase().includes(q); });
+  var el=document.getElementById('picker-list');
+  if(!list.length){ el.innerHTML='<div style="text-align:center;color:#bbb;padding:24px">找不到植物</div>'; return; }
+  el.innerHTML=list.map(function(p){
+    var th=thumbOf(p);
+    var thumb=th?'<div class="pick-thumb"><img loading="lazy" decoding="async" src="'+th+'" alt=""></div>':'<div class="pick-thumb">'+p.emoji+'</div>';
+    return '<div class="pick-row" onclick="pickPlant(\''+p.fbKey+'\')">'+thumb+
+      '<div class="pick-name"><div class="pn">'+p.name+'</div><div class="ps">上次澆水 '+dago(p.lastW)+' 天前</div></div></div>';
+  }).join('');
+};
+window.pickPlant=function(key){ if(pickerCb) pickerCb(key); };
+window.closePicker=function(){ document.getElementById('picker-ov').classList.remove('show'); pickerCb=null; };
+
+window.quickWaterDone=function(key){
+  var today=new Date().toISOString().split('T')[0];
+  setSyncDot('loading');
+  update(ref(db,'plants/'+key),{lastW:today});
+  window.toast('💧 已記錄澆水');
+};
+
+// 快速日誌（施肥/換盆/病蟲）
+var qlogKey=null, qlogType=null;
+window.openQlog=function(key,type,label){
+  qlogKey=key; qlogType=type;
+  var p=plants.find(function(x){return x.fbKey===key;});
+  document.getElementById('qlog-title').textContent=label||'紀錄';
+  document.getElementById('qlog-plant').textContent=p?(p.emoji+' '+p.name):'';
+  document.getElementById('qlog-note').value='';
+  document.getElementById('qlog-ov').classList.add('show');
+};
+window.closeQlog=function(){ document.getElementById('qlog-ov').classList.remove('show'); qlogKey=null; };
+window.confirmQlog=function(){
+  if(!qlogKey){ window.closeQlog(); return; }
+  var p=plants.find(function(x){return x.fbKey===qlogKey;}); if(!p){ window.closeQlog(); return; }
+  var note=document.getElementById('qlog-note').value.trim();
+  var labels={fert:'🌿 施肥',repot:'🪴 換盆',pest:'🐛 病蟲觀察'};
+  var text=(labels[qlogType]||'紀錄')+(note?'：'+note:'');
+  var today=new Date().toISOString().split('T')[0];
+  var upd={ journal:(p.journal||[]).concat([{date:today,text:text}]) };
+  if(qlogType==='pest'){ upd.health='需注意'; upd.hlog=(p.hlog||[]).concat([{date:today,s:'需注意',t:'o'}]); }
+  setSyncDot('loading');
+  update(ref(db,'plants/'+qlogKey),upd);
+  window.closeQlog();
+  window.toast('已記錄 ✓');
+};
+
+// 拍照（共用核心，詳情頁與首頁快速拍照都走這裡）
+function addPhotoToPlant(key,file){
+  if(!key||!file) return;
+  setSyncDot('loading');
+  compressImage(file,function(blob){
+    uploadImage(blob,'plants/'+key+'/'+Date.now()+'.jpg').then(function(url){
+      var p=plants.find(function(x){return x.fbKey===key;}); if(!p) return;
+      var photos=(p.photos||[]).concat([url]);
+      if(p.cover){ update(ref(db,'plants/'+key),{photos:photos}); window.toast('📷 已新增照片'); }
+      else {
+        compressThumb(file,function(tb){
+          uploadImage(tb,'plants/'+key+'/thumb_'+Date.now()+'.jpg').then(function(turl){
+            update(ref(db,'plants/'+key),{photos:photos,cover:url,coverThumb:turl}); window.toast('📷 已新增照片');
+          }).catch(function(){ update(ref(db,'plants/'+key),{photos:photos,cover:url}); window.toast('📷 已新增照片'); });
+        });
+      }
+    }).catch(function(err){ console.error(err); setSyncDot('err'); });
+  });
+}
+var quickPhotoKey=null;
+window.startQuickPhoto=function(key){ quickPhotoKey=key; document.getElementById('quick-pup').click(); };
+window.quickPhotoUpload=function(e){ var f=e.target.files[0]; if(f) addPhotoToPlant(quickPhotoKey,f); e.target.value=''; quickPhotoKey=null; };
+
+window.toggleFav=function(){
+  var p=plants.find(function(x){return x.fbKey===cur;}); if(!p) return;
+  setSyncDot('loading');
+  update(ref(db,'plants/'+cur),{fav:!p.fav});
+  var b=document.getElementById('fav-btn'); if(b) b.innerHTML=(!p.fav)?'★ 已收藏':'☆ 收藏';
 };
 
 var tagBarExpanded = false;
@@ -915,21 +1329,22 @@ function renderGrid() {
   if(viewMode === 'list') {
     container.innerHTML = '<div class="plist">'+paged.map(function(p){
       var ds = dago(p.lastW);
-      var dotCls = ds<=4?'green':ds<=7?'yellow':'red';
       var dotColor = ds<=4?'#4CAF50':ds<=7?'#FFC107':'#F44336';
-      var thumb = p.cover
-        ? '<div class="list-thumb"><img src="'+p.cover+'" alt=""></div>'
+      var th = thumbOf(p);
+      var thumb = th
+        ? '<div class="list-thumb"><img loading="lazy" decoding="async" src="'+th+'" alt=""></div>'
         : '<div class="list-thumb">'+p.emoji+'</div>';
+      var sub = [];
+      if(p.shop) sub.push(p.shop);
+      sub.push('澆水 '+ds+' 天前');
       return '<div class="list-row" onclick="openP(\''+p.fbKey+'\')">'+
         thumb+
         '<div class="list-name">'+
           '<div class="n">'+p.name+'</div>'+
+          '<div class="s">'+sub.join(' · ')+'</div>'+
         '</div>'+
         '<div class="list-right">'+
-          '<div style="display:flex;align-items:center;gap:5px">'+
-            '<span class="list-days">'+ds+'天前</span>'+
-            '<div class="list-wdot" style="background:'+dotColor+'"></div>'+
-          '</div>'+
+          '<div class="list-wdot" style="background:'+dotColor+'"></div>'+
           '<button class="list-qwater" onclick="quickWater(event,\''+p.fbKey+'\')">💧 澆水</button>'+
         '</div>'+
       '</div>';
@@ -938,8 +1353,9 @@ function renderGrid() {
     container.innerHTML = '<div class="pgrid">'+paged.map(function(p){
       var ds = dago(p.lastW);
       var posX = p.coverX||50, posY = p.coverY||50;
-      var imgH = p.cover
-        ? '<img src="'+p.cover+'" alt="" style="object-position:'+posX+'% '+posY+'%">'
+      var th = thumbOf(p);
+      var imgH = th
+        ? '<img loading="lazy" decoding="async" src="'+th+'" alt="" style="object-position:'+posX+'% '+posY+'%">'
         : '<span class="ef">'+p.emoji+'</span>';
       var tagsHtml = '';
       var dotColor = ds<=4?'#4CAF50':ds<=7?'#FFC107':'#F44336';
@@ -987,6 +1403,7 @@ window.openP = function(key) {
   document.getElementById('de').textContent = p.emoji;
   document.getElementById('dn').textContent = p.name;
   document.getElementById('dl').textContent = p.latin||'';
+  var favB=document.getElementById('fav-btn'); if(favB) favB.innerHTML = p.fav?'★ 已收藏':'☆ 收藏';
   document.getElementById('dig').innerHTML = [
     ['學名',p.latin||'—'],['入手日期',p.date||'—'],
     ['購買店家',p.shop||'—'],['價格',p.price?'NT$ '+p.price:'—'],
@@ -1029,7 +1446,7 @@ function renderPh(p) {
   document.getElementById('photo-g').innerHTML = photos.map(function(s,i){
     var isC = p.cover===s;
     return '<div class="thumb" onclick="openLightbox('+i+')" style="cursor:zoom-in">'+
-      '<img src="'+s+'" alt="">'+
+      '<img loading="lazy" decoding="async" src="'+s+'" alt="">'+
       '<button class="thumb-cover-btn'+(isC?' active':'')+'" onclick="setCover(event,'+i+')">'+
         (isC?'✓ 封面':'設為封面')+
       '</button></div>';
@@ -1083,19 +1500,8 @@ function compressImage(file, callback) {
 
 window.upPhoto = function(e) {
   var f = e.target.files[0]; if(!f) return;
-  setSyncDot('loading');
-  compressImage(f, function(blob) {
-    var path = 'plants/'+cur+'/'+Date.now()+'.jpg';
-    var storageRef = sref(storage, path);
-    uploadBytes(storageRef, blob).then(function(snap) {
-      return getDownloadURL(snap.ref);
-    }).then(function(url) {
-      var p = plants.find(function(x){ return x.fbKey===cur; });
-      var photos = (p.photos||[]).concat([url]);
-      var cover = p.cover||url;
-      update(ref(db,'plants/'+cur), {photos:photos, cover:cover});
-    }).catch(function(err){ console.error(err); setSyncDot('err'); });
-  });
+  addPhotoToPlant(cur, f);
+  e.target.value = '';
 };
 
 window.dtab = function(t, el) {
@@ -1189,6 +1595,7 @@ window.filterShops = function(q) {
   drop.innerHTML=html||(shops.length?'':'<div class="shop-opt" style="color:#bbb;cursor:default">尚無店家記錄</div>');
   drop.classList.toggle('open', !!(html||shops.length));
 };
+window.openShopDrop = function(){ window.filterShops(document.getElementById('fsh').value); };
 window.pickShop = function(v){ document.getElementById('fsh').value=v; window.closeShopDrop(); };
 
 var newCoverFile = null;
@@ -1231,13 +1638,8 @@ window.savePlant = function() {
   setSyncDot('loading');
   var newKey = push(plantsRef, plant).key;
   if(newCoverFile) {
-    compressImage(newCoverFile, function(blob){
-      var path = 'plants/'+newKey+'/cover_'+Date.now()+'.jpg';
-      uploadBytes(sref(storage, path), blob).then(function(snap){
-        return getDownloadURL(snap.ref);
-      }).then(function(url){
-        update(ref(db,'plants/'+newKey), {cover:url, photos:[url]});
-      });
+    processCover(newKey, newCoverFile, function(curl, turl){
+      update(ref(db,'plants/'+newKey), {cover:curl, coverThumb:turl, photos:[curl]});
     });
   }
   ['fn','fla','fem','fd','fsh','fpr','fw','fno'].forEach(function(id){document.getElementById(id).value='';});
@@ -1363,7 +1765,7 @@ function renderMat() {
     grid.innerHTML = filtered.map(function(m){
       var isLow = m.low && m.qty <= m.low;
       var photoHtml = m.photo
-        ? '<div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:10px 10px 0 0;margin:-16px -16px 10px -16px;width:calc(100% + 32px)"><img src="'+m.photo+'" style="width:100%;height:100%;object-fit:cover" onclick="openMatPhoto(event,\''+m.photo+'\')"></div>'
+        ? '<div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:10px 10px 0 0;margin:-16px -16px 10px -16px;width:calc(100% + 32px)"><img loading="lazy" decoding="async" src="'+m.photo+'" style="width:100%;height:100%;object-fit:cover" onclick="openMatPhoto(event,\''+m.photo+'\')"></div>'
         : '<div class="mat-icon">'+(CAT_ICONS[m.cat]||'📦')+'</div>';
       return '<div class="mat-card'+(isLow?' low':'')+'">'+
         (isLow?'<div class="mat-low-badge">庫存低</div>':'')+
@@ -1608,8 +2010,9 @@ window.showShopDetail = function(shopName) {
     '<div class="plist">'+shopPlants.map(function(p){
       var ds = dago(p.lastW);
       var dotColor = ds<=4?'#4CAF50':ds<=7?'#FFC107':'#F44336';
-      var thumb = p.cover
-        ? '<div class="list-thumb"><img src="'+p.cover+'" alt=""></div>'
+      var th = thumbOf(p);
+      var thumb = th
+        ? '<div class="list-thumb"><img loading="lazy" decoding="async" src="'+th+'" alt=""></div>'
         : '<div class="list-thumb">'+p.emoji+'</div>';
       return '<div class="list-row" onclick="openP(\''+p.fbKey+'\')">'+
         thumb+
@@ -1617,7 +2020,7 @@ window.showShopDetail = function(shopName) {
           '<div class="n">'+p.name+'</div>'+
         '</div>'+
         '<div class="list-right">'+
-          '<div style="font-size:13px;font-weight:500;color:var(--clay)">'+(p.price?'NT$'+p.price:'—')+'</div>'+
+          '<div style="font-size:13px;font-weight:500;color:var(--clay)">'+(p.price?(privacyOn?'••••':'NT$'+p.price):'—')+'</div>'+
           '<div style="display:flex;align-items:center;gap:5px">'+
             '<span class="list-days">'+ds+'天前</span>'+
             '<div class="list-wdot" style="background:'+dotColor+'"></div>'+
@@ -1844,15 +2247,10 @@ window.saveEdit = function() {
   };
   setSyncDot('loading');
   if(editNewCoverFile) {
-    compressImage(editNewCoverFile, function(blob){
-      var path = 'plants/'+cur+'/cover_'+Date.now()+'.jpg';
-      uploadBytes(sref(storage, path), blob).then(function(snap){
-        return getDownloadURL(snap.ref);
-      }).then(function(url){
-        var p = plants.find(function(x){return x.fbKey===cur;});
-        var photos = (p.photos||[]).concat([url]);
-        update(ref(db,'plants/'+cur), Object.assign({}, updates, {cover:url, photos:photos}));
-      });
+    processCover(cur, editNewCoverFile, function(curl, turl){
+      var p = plants.find(function(x){return x.fbKey===cur;});
+      var photos = (p.photos||[]).concat([curl]);
+      update(ref(db,'plants/'+cur), Object.assign({}, updates, {cover:curl, coverThumb:turl, photos:photos}));
     });
     editNewCoverFile = null;
   } else {
@@ -1877,6 +2275,22 @@ window.filterShopsE = function(q) {
   drop.classList.toggle('open', !!(html||shops.length));
 };
 window.pickShopE = function(v){ document.getElementById('esh').value=v; window.closeShopDropE(); };
+
+// ── 初始化 ───────────────────────────────────────────────
+// 手機預設用緊湊列表（桌機維持格狀）
+viewMode = window.innerWidth < 768 ? 'list' : 'grid';
+(function(){
+  var vg=document.getElementById('vbtn-grid'), vl=document.getElementById('vbtn-list');
+  if(vg&&vl){ vg.classList.toggle('on',viewMode==='grid'); vl.classList.toggle('on',viewMode==='list'); }
+})();
+try{ privacyOn = localStorage.getItem('plant_privacy')==='1'; }catch(e){}
+
+// 註冊 service worker（PWA 離線 / 可安裝）
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(err){ console.warn('SW register failed', err); });
+  });
+}
 
 </script>
 </body>
