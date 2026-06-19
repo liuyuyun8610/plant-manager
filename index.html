@@ -404,6 +404,52 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 .more-item .mi-arr{color:#ccc;font-size:17px}
 .install-hint{background:var(--gold-light);border:1px solid var(--gold);border-radius:14px;padding:14px 16px;font-size:13px;color:#7A5C2E;line-height:1.6;margin-top:14px}
 @media(min-width:560px){.home-stats{gap:14px}.quick-grid{grid-template-columns:repeat(6,1fr)}}
+
+/* ===== P1: 詳情頁分頁 ===== */
+.dtabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap}
+.dtabs::-webkit-scrollbar{display:none}
+.dtab{white-space:nowrap;flex-shrink:0}
+.d-hero{width:100%;aspect-ratio:16/10;border-radius:14px;overflow:hidden;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:64px;margin-bottom:15px}
+.d-hero img{width:100%;height:100%;object-fit:cover}
+.d-pills{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:15px}
+.pill{font-size:12px;padding:5px 12px;border-radius:20px;font-weight:500}
+.pill.g{background:#DFF0D8;color:#2C4A28}.pill.o{background:#FEF3CD;color:#8A6200}.pill.r{background:#FDE0DC;color:#B23B2E}.pill.n{background:var(--parch);color:#777}
+.d-quickbar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.d-qbtn{flex:1;min-width:60px;background:#fff;border:1px solid var(--mist);border-radius:11px;padding:9px 4px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink)}
+.d-qbtn:active{border-color:var(--gold);transform:scale(.96)}
+.d-qbtn .qbi{font-size:18px}
+.status-btns{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.status-btn{font-size:12px;padding:7px 14px;border-radius:11px;border:1px solid var(--mist);background:#fff;color:#777;cursor:pointer;font-family:'DM Sans',sans-serif}
+.status-btn.on{background:var(--moss);color:#fff;border-color:var(--moss)}
+.fin-total{background:var(--parch);border-radius:12px;padding:12px 16px;margin-top:9px;display:flex;justify-content:space-between;align-items:center;font-size:14px;color:#777}
+.fin-total b{font-family:'Playfair Display',serif;font-size:18px;color:var(--ink)}
+.profit-pos{color:var(--moss)!important}.profit-neg{color:#B23B2E!important}
+.lineage-empty,.fin-empty{text-align:center;color:#bbb;padding:24px 10px;font-size:13px}
+/* ===== P1: 篩選晶片 + sheet ===== */
+.quick-chips{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.chip{font-size:13px;padding:6px 14px;border-radius:20px;border:1px solid var(--mist);background:#fff;color:#888;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.chip.on{background:var(--moss);color:#fff;border-color:var(--moss)}
+.chip.filter-chip{margin-left:auto;background:var(--parch);color:var(--bark)}
+.filter-group{margin-bottom:18px}
+.filter-label{font-size:12px;color:#999;font-weight:500;margin-bottom:9px;letter-spacing:.03em}
+.filter-opts{display:flex;gap:8px;flex-wrap:wrap}
+.fopt{font-size:13px;padding:7px 14px;border-radius:11px;border:1px solid var(--mist);background:#fff;color:#777;cursor:pointer;font-family:'DM Sans',sans-serif}
+.fopt.on{background:var(--moss);color:#fff;border-color:var(--moss)}
+/* ===== P1: 分步驟新增 ===== */
+.add-steps{display:flex;gap:6px;margin-bottom:22px}
+.astep{flex:1;text-align:center;font-size:11px;color:#bbb}
+.astep-no{display:flex;width:26px;height:26px;border-radius:50%;background:var(--mist);color:#fff;align-items:center;justify-content:center;margin:0 auto 5px;font-size:12px}
+.astep.on .astep-no{background:var(--moss)}
+.astep.done .astep-no{background:var(--sage)}
+.astep.on .astep-t{color:var(--moss);font-weight:500}
+.add-step{display:none}
+.add-step.on{display:block}
+.add-nav{display:flex;gap:10px;margin-top:12px}
+.add-prev{background:var(--parch);border:1px solid var(--mist);border-radius:20px;padding:11px 20px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink)}
+.add-next{flex:1;background:var(--moss);color:#fff;border:none;border-radius:20px;padding:11px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif}
+.add-save{flex:1}
+.draft-banner{background:var(--gold-light);border:1px solid var(--gold);border-radius:11px;padding:9px 13px;font-size:12px;color:#7A5C2E;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.draft-banner button{background:none;border:none;color:#B23B2E;font-size:12px;cursor:pointer;text-decoration:underline;font-family:'DM Sans',sans-serif}
 </style>
 </head>
 <body>
@@ -470,16 +516,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
     <!-- Search + tag filter + view toggle -->
     <div style="margin-bottom:14px">
       <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
-        <input class="fi" id="grid-search" placeholder="🔍 搜尋植物名稱..." oninput="curPage=0;renderGrid()" style="flex:1;margin:0">
+        <input class="fi" id="grid-search" placeholder="🔍 搜尋名稱、來源、標籤..." oninput="curPage=0;renderGrid()" style="flex:1;margin:0">
         <div class="view-toggle">
           <button class="view-btn on" id="vbtn-grid" onclick="setViewMode('grid')" title="格狀">⊞</button>
           <button class="view-btn" id="vbtn-list" onclick="setViewMode('list')" title="列表">☰</button>
         </div>
       </div>
-      <div class="tag-bar-wrap">
-        <button class="tag-arr left" onclick="scrollTagBar(-120)">‹</button>
-        <div class="tag-bar" id="tag-bar"><div class="tag-bar-row" id="tag-bar-row"></div></div>
-        <button class="tag-arr right" onclick="scrollTagBar(120)">›</button>
+      <div class="quick-chips">
+        <button class="chip on" id="chip-all" onclick="setQuick('all')">全部</button>
+        <button class="chip" id="chip-due" onclick="setQuick('due')">💧 待澆水</button>
+        <button class="chip" id="chip-fav" onclick="setQuick('fav')">★ 收藏</button>
+        <button class="chip filter-chip" onclick="openFilter()">⚙ 篩選<span id="filter-count"></span></button>
       </div>
     </div>
     <div id="plant-view-container"></div>
@@ -522,31 +569,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
       </div>
       <div class="dbody">
         <div class="dtabs">
-          <button class="dtab on" onclick="dtab('info',this)">基本資料</button>
-          <button class="dtab" onclick="dtab('health',this)">健康記錄</button>
-          <button class="dtab" onclick="dtab('jour',this)">日誌</button>
+          <button class="dtab on" onclick="dtab('overview',this)">總覽</button>
+          <button class="dtab" onclick="dtab('records',this)">紀錄</button>
           <button class="dtab" onclick="dtab('photo',this)">照片</button>
-          <button class="dtab" onclick="dtab('ai',this)">🤖 AI查詢</button>
+          <button class="dtab" onclick="dtab('lineage',this)">血統</button>
+          <button class="dtab" onclick="dtab('finance',this)">金流</button>
+          <button class="dtab" onclick="dtab('settings',this)">設定</button>
         </div>
-        <div class="sec on" id="ds-info"><div class="igrid" id="dig"></div></div>
-        <div class="sec" id="ds-health">
-          <div id="dhl"></div>
-          <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:14px">
-            <button class="btn-add" style="font-size:12px;padding:6px 13px" onclick="addH('良好','g')">✓ 記錄良好</button>
-            <button class="btn-add" style="background:var(--clay);font-size:12px;padding:6px 13px" onclick="addH('需注意','o')">! 需注意</button>
+        <div class="sec on" id="ds-overview"></div>
+        <div class="sec" id="ds-records">
+          <div class="d-quickbar">
+            <button class="d-qbtn" onclick="detailWater()"><span class="qbi">💧</span>澆水</button>
+            <button class="d-qbtn" onclick="addH('良好','g')"><span class="qbi">✅</span>良好</button>
+            <button class="d-qbtn" onclick="detailQlog('fert')"><span class="qbi">🌿</span>施肥</button>
+            <button class="d-qbtn" onclick="detailQlog('repot')"><span class="qbi">🪴</span>換盆</button>
+            <button class="d-qbtn" onclick="detailQlog('pest')"><span class="qbi">🐛</span>病蟲</button>
+            <button class="d-qbtn" onclick="detailQlog('note')"><span class="qbi">📝</span>備註</button>
           </div>
-        </div>
-        <div class="sec" id="ds-jour">
-          <div id="djl"></div>
-          <div style="margin-top:14px">
-            <textarea class="ft" id="nje" placeholder="記錄今天的觀察..."></textarea>
-            <button class="bsub" style="margin-top:7px" onclick="addJ()">新增日誌</button>
-          </div>
-        </div>
-        <div class="sec" id="ds-ai">
-          <div id="ai-links" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px"></div>
-          <div id="ai-result" style="background:var(--parch);border-radius:12px;padding:14px;font-size:14px;line-height:1.7;min-height:60px;color:#888">點擊「AI 查詢照護建議」開始查詢</div>
-          <button class="bsub" style="margin-top:12px" onclick="queryAI()">🤖 AI 查詢照護建議</button>
+          <div id="d-timeline"></div>
         </div>
         <div class="sec" id="ds-photo">
           <div class="upload" onclick="document.getElementById('pup').click()">
@@ -557,6 +597,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
           <input type="file" id="pup" accept="image/*" style="display:none" onchange="upPhoto(event)">
           <div class="photo-g" id="photo-g"></div>
         </div>
+        <div class="sec" id="ds-lineage"></div>
+        <div class="sec" id="ds-finance"></div>
+        <div class="sec" id="ds-settings"></div>
       </div>
     </div>
   </div>
@@ -631,42 +674,66 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 
   <div id="v-add" style="display:none">
     <p class="stitle">新增植物</p>
-    <div class="fsec">
-      <label class="fl">封面照片（選填）</label>
-      <div class="cover-upload" onclick="document.getElementById('fcover').click()">
-        <img id="cover-preview" class="cover-preview">
-        <div id="cover-ph"><div style="font-size:28px;margin-bottom:6px">&#127795;</div><div>點擊上傳封面照片</div></div>
+    <div class="draft-banner" id="draft-banner" style="display:none">📝 已自動暫存上次填到一半的內容 <button onclick="discardDraft()">清除草稿</button></div>
+    <div class="add-steps" id="add-steps"></div>
+
+    <!-- Step 1: 基本資料 -->
+    <div class="add-step on" data-step="0">
+      <div class="fsec"><label class="fl">植物名稱 *</label><input class="fi" id="fn" placeholder="例：黃金葛" oninput="saveDraft()"></div>
+      <div class="fsec"><label class="fl">學名（選填）</label><input class="fi" id="fla" placeholder="例：Epipremnum aureum" oninput="saveDraft()"></div>
+      <div class="fsec frow">
+        <div><label class="fl">表情符號</label><input class="fi" id="fem" placeholder="🪴" maxlength="2" oninput="saveDraft()"></div>
+        <div><label class="fl">入手日期</label><input class="fi" type="date" id="fd" onchange="saveDraft()"></div>
       </div>
-      <input type="file" id="fcover" accept="image/*" style="display:none" onchange="previewCover(event)">
     </div>
-    <div class="fsec"><label class="fl">植物名稱 *</label><input class="fi" id="fn" placeholder="例：黃金葛"></div>
-    <div class="fsec"><label class="fl">學名（選填）</label><input class="fi" id="fla" placeholder="例：Epipremnum aureum"></div>
-    <div class="fsec frow">
-      <div><label class="fl">表情符號</label><input class="fi" id="fem" placeholder="🪴" maxlength="2"></div>
-      <div><label class="fl">入手日期</label><input class="fi" type="date" id="fd"></div>
-    </div>
-    <div class="fsec frow">
-      <div>
+
+    <!-- Step 2: 來源 / 金額 -->
+    <div class="add-step" data-step="1">
+      <div class="fsec">
         <label class="fl">購買店家</label>
         <div class="shop-wrap">
           <input class="fi" id="fsh" placeholder="輸入或選擇店家..." autocomplete="off"
-            oninput="filterShops(this.value)" onfocus="openShopDrop()" onblur="setTimeout(closeShopDrop,180)">
+            oninput="filterShops(this.value);saveDraft()" onfocus="openShopDrop()" onblur="setTimeout(closeShopDrop,180)">
           <div class="shop-dropdown" id="shop-drop"></div>
         </div>
       </div>
-      <div><label class="fl">價格（NT$）</label><input class="fi" type="number" id="fpr" placeholder="0"></div>
+      <div class="fsec"><label class="fl">價格 / 購入價（NT$）</label><input class="fi" type="number" id="fpr" placeholder="0" oninput="saveDraft()"></div>
     </div>
-    <div class="fsec"><label class="fl">澆水頻率（天）</label><input class="fi" type="number" id="fw" placeholder="7" min="1"></div>
-    <div class="fsec">
-      <label class="fl">標籤</label>
-      <div class="tag-input-wrap" id="add-tag-wrap" onclick="document.getElementById('add-tag-input').focus()">
-        <div id="add-tag-pills"></div>
-        <input id="add-tag-input" placeholder="輸入標籤後按 Enter..." oninput="showTagSuggest('add')" onkeydown="handleTagKey(event,'add')" onblur="hideTagSuggest('add')" onfocus="showTagSuggest('add')">
-        <div class="tag-suggest" id="add-tag-suggest"></div>
+
+    <!-- Step 3: 照顧資訊 -->
+    <div class="add-step" data-step="2">
+      <div class="fsec frow">
+        <div><label class="fl">澆水頻率（天）</label><input class="fi" type="number" id="fw" placeholder="7" min="1" oninput="saveDraft()"></div>
+        <div><label class="fl">放置位置</label><input class="fi" id="floc" placeholder="例：客廳窗邊" oninput="saveDraft()"></div>
+      </div>
+      <div class="fsec">
+        <label class="fl">標籤 / 品系</label>
+        <div class="tag-input-wrap" id="add-tag-wrap" onclick="document.getElementById('add-tag-input').focus()">
+          <div id="add-tag-pills"></div>
+          <input id="add-tag-input" placeholder="輸入標籤後按 Enter..." oninput="showTagSuggest('add')" onkeydown="handleTagKey(event,'add')" onblur="hideTagSuggest('add')" onfocus="showTagSuggest('add')">
+          <div class="tag-suggest" id="add-tag-suggest"></div>
+        </div>
       </div>
     </div>
-    <div class="fsec"><label class="fl">備註</label><textarea class="ft" id="fno" placeholder="放置位置、特殊習性..."></textarea></div>
-    <button class="bsub" onclick="savePlant()">儲存植物 &#127807;</button>
+
+    <!-- Step 4: 照片 / 備註 -->
+    <div class="add-step" data-step="3">
+      <div class="fsec">
+        <label class="fl">封面照片（選填）</label>
+        <div class="cover-upload" onclick="document.getElementById('fcover').click()">
+          <img id="cover-preview" class="cover-preview">
+          <div id="cover-ph"><div style="font-size:28px;margin-bottom:6px">&#127795;</div><div>點擊上傳封面照片</div></div>
+        </div>
+        <input type="file" id="fcover" accept="image/*" style="display:none" onchange="previewCover(event)">
+      </div>
+      <div class="fsec"><label class="fl">備註</label><textarea class="ft" id="fno" placeholder="特殊習性、注意事項..." oninput="saveDraft()"></textarea></div>
+    </div>
+
+    <div class="add-nav">
+      <button class="add-prev" onclick="addStep(-1)">上一步</button>
+      <button class="add-next" onclick="addStep(1)">下一步 →</button>
+      <button class="bsub add-save" style="display:none" onclick="savePlant()">儲存植物 &#127807;</button>
+    </div>
   </div>
 
   <!-- 更多 -->
@@ -748,6 +815,31 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
       </div>
     </div>
     <div class="fsec"><label class="fl">備註</label><textarea class="ft" id="eno"></textarea></div>
+    <div class="fsec frow">
+      <div><label class="fl">放置位置</label><input class="fi" id="eloc" placeholder="例：客廳窗邊"></div>
+      <div><label class="fl">株態</label>
+        <select class="fi" id="estatus">
+          <option value="">健康中</option>
+          <option value="archived">封存</option>
+          <option value="sold">已售出</option>
+          <option value="dead">已枯死</option>
+        </select>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--mist);margin:4px 0 16px"></div>
+    <div class="fl" style="margin-bottom:9px">🧬 血統 / 親本</div>
+    <div class="fsec frow">
+      <div><label class="fl">母本</label><input class="fi" id="emother" placeholder="母本品系"></div>
+      <div><label class="fl">父本</label><input class="fi" id="efather" placeholder="父本品系"></div>
+    </div>
+    <div class="fsec"><label class="fl">交種代號 / 來源備註</label><input class="fi" id="elineage" placeholder="交種代號、來源可靠度..."></div>
+    <div style="border-top:1px solid var(--mist);margin:4px 0 16px"></div>
+    <div class="fl" style="margin-bottom:9px">💰 金流</div>
+    <div class="fsec frow">
+      <div><label class="fl">運費（NT$）</label><input class="fi" type="number" id="eship" placeholder="0"></div>
+      <div><label class="fl">耗材成本（NT$）</label><input class="fi" type="number" id="esupply" placeholder="0"></div>
+    </div>
+    <div class="fsec"><label class="fl">售出價（NT$，已售出才填）</label><input class="fi" type="number" id="esold" placeholder="0"></div>
     <button class="bsub" onclick="saveEdit()">儲存變更</button>
   </div>
 </div>
@@ -882,6 +974,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
   </div>
 </div>
 
+<!-- Filter / sort sheet -->
+<div class="sheet-ov" id="filter-ov" onclick="if(event.target===this)closeFilter()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h3>篩選與排序</h3>
+    <div class="sheet-list">
+      <div class="filter-group"><div class="filter-label">排序方式</div><div class="filter-opts" id="filter-sort"></div></div>
+      <div class="filter-group"><div class="filter-label">株態</div><div class="filter-opts" id="filter-status"></div></div>
+      <div class="filter-group"><div class="filter-label">品系 / 標籤（可多選）</div><div class="filter-opts" id="filter-tags"></div></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="cc" style="flex:0 0 auto;padding:11px 20px;border-radius:12px;cursor:pointer" onclick="clearFilter()">清除</button>
+      <button class="bsub" style="border-radius:12px" onclick="applyFilter()">套用篩選</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="quick-pup" accept="image/*" style="display:none" onchange="quickPhotoUpload(event)">
 <div class="toast" id="toast"></div>
 
@@ -989,9 +1098,9 @@ onValue(plantsRef, function(snapshot) {
   document.getElementById('loading').style.display = 'none';
   setSyncDot('ok');
   refreshActive();
-  if(cur) {
+  if(cur && activeView==='detail') {
     var p = plants.find(function(x){ return x.fbKey===cur; });
-    if(p) { renderHL(p); renderJL(p); renderPh(p); }
+    if(p) renderDetail(p);
   }
 }, function(err) {
   console.error(err);
@@ -1041,7 +1150,7 @@ window.go = function(v, el) {
   if(v==='know') renderKnow();
   if(v==='dash') renderDash();
   if(v==='more') renderMore();
-  if(v==='add') { newCoverData=''; resetCoverPreview(); }
+  if(v==='add') { newCoverData=''; resetCoverPreview(); loadDraft(); renderAddSteps(); }
   window.scrollTo(0,0);
 };
 window.bgo = function(v){ window.go(v); };
@@ -1229,7 +1338,7 @@ window.confirmQlog=function(){
   if(!qlogKey){ window.closeQlog(); return; }
   var p=plants.find(function(x){return x.fbKey===qlogKey;}); if(!p){ window.closeQlog(); return; }
   var note=document.getElementById('qlog-note').value.trim();
-  var labels={fert:'🌿 施肥',repot:'🪴 換盆',pest:'🐛 病蟲觀察'};
+  var labels={fert:'🌿 施肥',repot:'🪴 換盆',pest:'🐛 病蟲觀察',note:'📝 備註'};
   var text=(labels[qlogType]||'紀錄')+(note?'：'+note:'');
   var today=new Date().toISOString().split('T')[0];
   var upd={ journal:(p.journal||[]).concat([{date:today,text:text}]) };
@@ -1284,15 +1393,32 @@ window.setViewMode = function(mode) {
   renderGrid();
 };
 
+function plantSorted(list){
+  var s = filterState.sort;
+  return list.slice().sort(function(a,b){
+    if(s==='water') return dago(b.lastW) - dago(a.lastW);   // 最久沒澆水優先
+    if(s==='date')  return (b.date||'').localeCompare(a.date||'');
+    if(s==='price') return (b.price||0) - (a.price||0);
+    if(s==='name')  return a.name.localeCompare(b.name);
+    return dago(a.lastW) - dago(b.lastW);                   // updated：最近澆水/更新優先
+  });
+}
 function renderGrid() {
-  renderTagBar();
+  updateQuickChips();
 
   var q = (document.getElementById('grid-search')||{value:''}).value.toLowerCase();
   var filtered = plants.filter(function(p){
-    var matchTag = !curTag || (p.tags||[]).indexOf(curTag) > -1;
-    var matchSearch = !q || p.name.toLowerCase().includes(q) || (p.latin||'').toLowerCase().includes(q);
-    return matchTag && matchSearch;
-  }).sort(function(a,b){ return dago(b.lastW) - dago(a.lastW); });
+    if(filterState.quick==='due' && !due(p)) return false;
+    if(filterState.quick==='fav' && !p.fav) return false;
+    if(filterState.status!=='all'){ var ps=p.status||'active'; if(ps!==filterState.status) return false; }
+    if(filterState.tags.length){ var pt=p.tags||[]; if(!filterState.tags.every(function(t){return pt.indexOf(t)>-1;})) return false; }
+    if(q){
+      var hay=(p.name+' '+(p.latin||'')+' '+(p.shop||'')+' '+((p.tags||[]).join(' '))+' '+(p.note||'')).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  filtered = plantSorted(filtered);
 
   var container = document.getElementById('plant-view-container');
   var ge = document.getElementById('ge');
@@ -1311,7 +1437,7 @@ function renderGrid() {
   // Stats bar
   var totalCost = filtered.reduce(function(s,p){return s+(p.price||0);},0);
   document.getElementById('gs-count').textContent = filtered.length;
-  document.getElementById('gs-cost').textContent = 'NT$'+totalCost.toLocaleString();
+  document.getElementById('gs-cost').textContent = privacyOn ? '••••' : 'NT$'+totalCost.toLocaleString();
   statsBar.style.display='flex';
 
   // Pagination
@@ -1380,65 +1506,136 @@ window.gotoPage = function(p) {
   window.scrollTo({top:0, behavior:'smooth'});
 };
 
-function renderTagBar() {
-  var tags = getAllTags();
-  var row = document.getElementById('tag-bar-row');
-  row.className = 'tag-bar-row';
-  var allBtn = '<button class="tag-filter all'+(curTag===''?' on':'')+'" onclick="setTagFilter(\'\')">全部</button>';
-  var tagBtns = tags.map(function(t){
-    return '<button class="tag-filter'+(curTag===t?' on':'')+'" onclick="setTagFilter(\''+t+'\')">'+t+'</button>';
-  }).join('');
-  row.innerHTML = allBtn + tagBtns;
+// ── 篩選系統 ─────────────────────────────────────────────
+var filterState = { quick:'all', tags:[], status:'all', sort:'updated' };
+function updateQuickChips(){
+  ['all','due','fav'].forEach(function(k){ var el=document.getElementById('chip-'+k); if(el) el.classList.toggle('on', filterState.quick===k); });
+  var n = filterState.tags.length + (filterState.status!=='all'?1:0) + (filterState.sort!=='updated'?1:0);
+  var fc=document.getElementById('filter-count'); if(fc) fc.textContent = n ? (' ·'+n) : '';
 }
-window.toggleTagBar = function() { tagBarExpanded = !tagBarExpanded; renderTagBar(); };
-window.setTagFilter = function(t) { curTag = t; curPage = 0; renderGrid(); };
-window.scrollTagBar = function(dx) {
-  var el = document.getElementById('tag-bar');
-  if(el) el.scrollBy({left:dx, behavior:'smooth'});
+window.setQuick = function(k){ filterState.quick=k; curPage=0; renderGrid(); };
+
+var tempFilter = null;
+window.openFilter = function(){
+  tempFilter = { quick:filterState.quick, tags:filterState.tags.slice(), status:filterState.status, sort:filterState.sort };
+  renderFilterSheet();
+  document.getElementById('filter-ov').classList.add('show');
+};
+window.closeFilter = function(){ document.getElementById('filter-ov').classList.remove('show'); };
+function renderFilterSheet(){
+  var sorts=[['updated','最近更新'],['water','最久沒澆水'],['date','購入日期'],['price','價格'],['name','名稱']];
+  document.getElementById('filter-sort').innerHTML = sorts.map(function(s){
+    return '<button class="fopt'+(tempFilter.sort===s[0]?' on':'')+'" onclick="pickSort(\''+s[0]+'\')">'+s[1]+'</button>';
+  }).join('');
+  var sts=[['all','全部'],['active','健康中'],['archived','封存'],['sold','已售出'],['dead','已枯死']];
+  document.getElementById('filter-status').innerHTML = sts.map(function(s){
+    return '<button class="fopt'+(tempFilter.status===s[0]?' on':'')+'" onclick="pickStatus(\''+s[0]+'\')">'+s[1]+'</button>';
+  }).join('');
+  var tags=getAllTags();
+  document.getElementById('filter-tags').innerHTML = tags.length
+    ? tags.map(function(t){
+        var esc=t.replace(/'/g,"\\'");
+        return '<button class="fopt'+(tempFilter.tags.indexOf(t)>-1?' on':'')+'" onclick="toggleFilterTag(\''+esc+'\')">'+t+'</button>';
+      }).join('')
+    : '<span style="color:#bbb;font-size:13px">尚無標籤</span>';
+}
+window.pickSort = function(s){ tempFilter.sort=s; renderFilterSheet(); };
+window.pickStatus = function(s){ tempFilter.status=s; renderFilterSheet(); };
+window.toggleFilterTag = function(t){ var i=tempFilter.tags.indexOf(t); if(i>-1) tempFilter.tags.splice(i,1); else tempFilter.tags.push(t); renderFilterSheet(); };
+window.clearFilter = function(){ tempFilter.tags=[]; tempFilter.status='all'; tempFilter.sort='updated'; renderFilterSheet(); };
+window.applyFilter = function(){
+  filterState.tags=tempFilter.tags.slice(); filterState.status=tempFilter.status; filterState.sort=tempFilter.sort;
+  curPage=0; window.closeFilter(); renderGrid();
 };
 
 window.openP = function(key) {
   cur = key;
   var p = plants.find(function(x){ return x.fbKey===key; });
+  if(!p) return;
+  renderDetail(p);
+  window.dtab('overview'); window.go('detail');
+};
+
+function statusLabel(s){ return {archived:'封存',sold:'已售出',dead:'已枯死'}[s]||''; }
+function detailTimeline(p){
+  var ev=[];
+  (p.journal||[]).forEach(function(j){ ev.push({date:j.date,icon:'📝',text:j.text}); });
+  (p.hlog||[]).forEach(function(h){ ev.push({date:h.date,icon:h.t==='g'?'✅':'⚠️',text:h.s}); });
+  if(p.lastW) ev.push({date:p.lastW,icon:'💧',text:'澆水'});
+  ev.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  return ev;
+}
+function renderDetail(p){
   document.getElementById('de').textContent = p.emoji;
   document.getElementById('dn').textContent = p.name;
   document.getElementById('dl').textContent = p.latin||'';
   var favB=document.getElementById('fav-btn'); if(favB) favB.innerHTML = p.fav?'★ 已收藏':'☆ 收藏';
-  document.getElementById('dig').innerHTML = [
-    ['學名',p.latin||'—'],['入手日期',p.date||'—'],
-    ['購買店家',p.shop||'—'],['價格',p.price?'NT$ '+p.price:'—'],
-    ['澆水頻率','每 '+p.wdays+' 天'],['健康狀態',p.health],
-    ['備註',p.note||'—',true]
-  ].map(function(a){
-    return '<div class="icard"'+(a[2]?' style="grid-column:1/-1"':'')+'>'+
-      '<div class="ilabel">'+a[0]+'</div><div class="ivalue">'+a[1]+'</div></div>';
-  }).join('') + ((p.tags&&p.tags.length) ? '<div class="icard" style="grid-column:1/-1"><div class="ilabel">標籤</div><div class="detail-tags">'+p.tags.map(function(t){return '<span class="detail-tag">'+t+'</span>';}).join('')+'</div></div>' : '');
-  renderHL(p); renderJL(p); renderPh(p);
-  // External links
-  var searchName = encodeURIComponent((p.latin||p.name));
-  document.getElementById('ai-links').innerHTML =
-    '<a class="ext-link" href="https://www.google.com/search?q='+searchName+'+plant+care" target="_blank">🔍 Google 搜尋</a>'+
-    '<a class="ext-link" href="https://en.wikipedia.org/wiki/'+encodeURIComponent(p.latin||p.name)+'" target="_blank">📖 維基百科</a>'+
-    '<a class="ext-link" href="https://www.google.com/search?q='+searchName+'+plant+care&tbm=isch" target="_blank">🖼 圖片參考</a>';
-  document.getElementById('ai-result').textContent = '點擊「AI 查詢照護建議」開始查詢';
-  window.dtab('info'); window.go('detail');
-};
+  var m=function(v){ return privacyOn?'••••':'NT$'+(v||0).toLocaleString(); };
+  var ds=dago(p.lastW), nextIn=p.wdays-ds;
 
-function renderHL(p) {
-  var el=document.getElementById('dhl');
-  if(!p.hlog||!p.hlog.length){ el.innerHTML='<div style="color:#aaa;font-size:13px;padding:8px 0">尚無健康記錄</div>'; return; }
-  el.innerHTML = p.hlog.slice().reverse().map(function(h){
-    return '<div class="hrow"><div class="hdot" style="background:'+(h.t==='g'?'#4CAF50':'#FF9800')+'"></div>'+
-      '<span style="color:#888;font-size:12px">'+h.date+'</span><span>'+h.s+'</span></div>';
-  }).join('');
+  // ── 總覽 ──
+  var hero = p.cover
+    ? '<img loading="lazy" decoding="async" src="'+p.cover+'" style="object-position:'+(p.coverX||50)+'% '+(p.coverY||50)+'%">'
+    : p.emoji;
+  var pills = '<span class="pill '+(p.health==='良好'?'g':'o')+'">'+(p.health||'良好')+'</span>';
+  pills += due(p) ? '<span class="pill r">需澆水</span>' : '<span class="pill n">'+nextIn+' 天後澆水</span>';
+  var st=statusLabel(p.status); if(st) pills += '<span class="pill n">'+st+'</span>';
+  var ov=[['上次澆水',ds+' 天前'],['澆水頻率','每 '+p.wdays+' 天'],['來源',p.shop||'—'],
+          ['位置',p.location||'—'],['入手日期',p.date||'—'],['價格',p.price?m(p.price):'—']];
+  var ovHtml='<div class="d-hero">'+hero+'</div><div class="d-pills">'+pills+'</div>'+
+    '<div class="igrid">'+ov.map(function(a){return '<div class="icard"><div class="ilabel">'+a[0]+'</div><div class="ivalue">'+a[1]+'</div></div>';}).join('')+'</div>';
+  if(p.note) ovHtml+='<div class="icard" style="margin-top:13px"><div class="ilabel">備註</div><div class="ivalue">'+p.note+'</div></div>';
+  if(p.tags&&p.tags.length) ovHtml+='<div class="detail-tags" style="margin-top:13px">'+p.tags.map(function(t){return '<span class="detail-tag">'+t+'</span>';}).join('')+'</div>';
+  var sn=encodeURIComponent(p.latin||p.name);
+  ovHtml+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">'+
+    '<a class="ext-link" href="https://www.google.com/search?q='+sn+'+plant+care" target="_blank">🔍 Google</a>'+
+    '<a class="ext-link" href="https://www.google.com/search?q='+sn+'&tbm=isch" target="_blank">🖼 圖片參考</a></div>';
+  document.getElementById('ds-overview').innerHTML=ovHtml;
+
+  // ── 紀錄（時間軸）──
+  var ev=detailTimeline(p);
+  document.getElementById('d-timeline').innerHTML = ev.length
+    ? ev.map(function(e){return '<div class="tl-row"><div class="tl-icon">'+e.icon+'</div><div class="tl-body"><div class="tl-top">'+e.text+'</div><div class="tl-date">'+e.date+'</div></div></div>';}).join('')
+    : '<div style="color:#aaa;font-size:13px;padding:16px 0;text-align:center">還沒有紀錄，用上面的按鈕新增第一筆</div>';
+
+  // ── 照片 ──
+  renderPh(p);
+
+  // ── 血統 ──
+  var hasLin=p.mother||p.father||p.lineageNote;
+  document.getElementById('ds-lineage').innerHTML = hasLin
+    ? '<div class="igrid">'+[['母本',p.mother||'—'],['父本',p.father||'—']].map(function(a){return '<div class="icard"><div class="ilabel">'+a[0]+'</div><div class="ivalue">'+a[1]+'</div></div>';}).join('')+'</div>'+
+      (p.lineageNote?'<div class="icard" style="margin-top:13px"><div class="ilabel">交種 / 來源備註</div><div class="ivalue">'+p.lineageNote+'</div></div>':'')+
+      '<button class="mat-btn edit" style="width:auto;padding:7px 16px;margin-top:14px" onclick="openEdit()">✏️ 編輯血統</button>'
+    : '<div class="lineage-empty">🧬 尚未記錄親本資訊<br><button class="btn-add" style="margin-top:12px" onclick="openEdit()">＋ 新增血統</button></div>';
+
+  // ── 金流 ──
+  var cost=(p.price||0)+(p.shipping||0)+(p.supplyCost||0);
+  var fin='<div class="igrid">'+[['購入價',p.price||0],['運費',p.shipping||0],['耗材成本',p.supplyCost||0]].map(function(a){return '<div class="icard"><div class="ilabel">'+a[0]+'</div><div class="ivalue">'+m(a[1])+'</div></div>';}).join('')+'</div>';
+  fin+='<div class="fin-total"><span>總成本</span><b>'+m(cost)+'</b></div>';
+  if(p.soldPrice){
+    var profit=(p.soldPrice||0)-cost;
+    fin+='<div class="fin-total"><span>售出價</span><b>'+m(p.soldPrice)+'</b></div>';
+    fin+='<div class="fin-total"><span>損益</span><b class="'+(profit>=0?'profit-pos':'profit-neg')+'">'+(privacyOn?'••••':(profit>=0?'+':'-')+'NT$'+Math.abs(profit).toLocaleString())+'</b></div>';
+  }
+  fin+='<button class="mat-btn edit" style="width:auto;padding:7px 16px;margin-top:14px" onclick="openEdit()">✏️ 編輯金流</button>';
+  document.getElementById('ds-finance').innerHTML=fin;
+
+  // ── 設定 ──
+  var statuses=[['','健康中'],['archived','封存'],['sold','已售出'],['dead','已枯死']];
+  var curSt=p.status||'';
+  var setHtml='<div class="igrid">'+
+    '<div class="icard"><div class="ilabel">澆水週期</div><div class="ivalue">每 '+p.wdays+' 天</div></div>'+
+    '<div class="icard"><div class="ilabel">放置位置</div><div class="ivalue">'+(p.location||'—')+'</div></div></div>'+
+    '<div class="ilabel" style="margin-top:16px">株態</div><div class="status-btns">'+
+    statuses.map(function(s){return '<button class="status-btn'+(curSt===s[0]?' on':'')+'" onclick="setStatus(\''+s[0]+'\')">'+s[1]+'</button>';}).join('')+'</div>'+
+    '<div style="margin-top:18px"><button class="mat-btn edit" style="width:auto;padding:7px 16px" onclick="openEdit()">✏️ 編輯全部欄位</button></div>';
+  document.getElementById('ds-settings').innerHTML=setHtml;
 }
-function renderJL(p) {
-  var el=document.getElementById('djl');
-  if(!p.journal||!p.journal.length){ el.innerHTML='<div style="color:#aaa;font-size:13px;padding:8px 0">還沒有日誌，寫下第一篇吧！</div>'; return; }
-  el.innerHTML = p.journal.slice().reverse().map(function(j){
-    return '<div class="jentry"><div class="jdate">'+j.date+'</div><div class="jtext">'+j.text+'</div></div>';
-  }).join('');
-}
+window.setStatus = function(s){ if(!cur) return; setSyncDot('loading'); update(ref(db,'plants/'+cur),{status:s}); window.toast('已更新株態'); };
+window.detailWater = function(){ if(cur) window.quickWaterDone(cur); };
+window.detailQlog = function(type){ if(!cur) return; var L={fert:'🌿 施肥',repot:'🪴 換盆',pest:'🐛 病蟲觀察',note:'📝 備註'}; window.openQlog(cur,type,L[type]); };
+
 var lbPhotos = [], lbIdx = 0;
 
 function renderPh(p) {
@@ -1467,15 +1664,6 @@ window.addH = function(s, t) {
   var hlog = (p.hlog||[]).concat([{date:new Date().toISOString().split('T')[0],s:s,t:t}]);
   setSyncDot('loading');
   update(ref(db,'plants/'+cur), {hlog:hlog, health:s});
-};
-
-window.addJ = function() {
-  var el=document.getElementById('nje'), txt=el.value.trim(); if(!txt) return;
-  var p = plants.find(function(x){ return x.fbKey===cur; });
-  var journal = (p.journal||[]).concat([{date:new Date().toISOString().split('T')[0],text:txt}]);
-  setSyncDot('loading');
-  update(ref(db,'plants/'+cur), {journal:journal});
-  el.value='';
 };
 
 // Compress image to max 800px and return blob
@@ -1632,6 +1820,7 @@ window.savePlant = function() {
     wdays:parseInt(document.getElementById('fw').value)||7,
     lastW:new Date().toISOString().split('T')[0],
     note:document.getElementById('fno').value.trim(),
+    location:document.getElementById('floc').value.trim(),
     tags: addTags.slice(),
     health:'良好', journal:[], hlog:[]
   };
@@ -1642,10 +1831,62 @@ window.savePlant = function() {
       update(ref(db,'plants/'+newKey), {cover:curl, coverThumb:turl, photos:[curl]});
     });
   }
-  ['fn','fla','fem','fd','fsh','fpr','fw','fno'].forEach(function(id){document.getElementById(id).value='';});
+  ['fn','fla','fem','fd','fsh','fpr','fw','floc','fno'].forEach(function(id){document.getElementById(id).value='';});
   addTags=[]; renderTagPills('add',[]);
   newCoverData=''; newCoverFile=null;
+  clearDraft(); addCurStep=0;
+  window.toast('🌿 已新增植物');
   window.go('grid');
+};
+
+// ── 分步驟新增 + 草稿 ─────────────────────────────────────
+var addCurStep = 0;
+function aval(id){ var e=document.getElementById(id); return e?e.value:''; }
+function renderAddSteps(){
+  var titles=['基本資料','來源/金額','照顧資訊','照片/備註'];
+  var el=document.getElementById('add-steps'); if(!el) return;
+  el.innerHTML = titles.map(function(t,i){
+    return '<div class="astep'+(i===addCurStep?' on':'')+(i<addCurStep?' done':'')+'">'+
+      '<span class="astep-no">'+(i<addCurStep?'✓':(i+1))+'</span><span class="astep-t">'+t+'</span></div>';
+  }).join('');
+  document.querySelectorAll('#v-add .add-step').forEach(function(s){ s.classList.toggle('on', +s.getAttribute('data-step')===addCurStep); });
+  var prev=document.querySelector('#v-add .add-prev'), next=document.querySelector('#v-add .add-next'), save=document.querySelector('#v-add .add-save');
+  if(prev) prev.style.visibility = addCurStep===0?'hidden':'visible';
+  if(next) next.style.display = addCurStep<3?'block':'none';
+  if(save) save.style.display = addCurStep===3?'block':'none';
+}
+window.addStep = function(d){
+  if(d>0 && addCurStep===0 && !document.getElementById('fn').value.trim()){ window.toast('請先輸入植物名稱'); return; }
+  addCurStep = Math.min(3, Math.max(0, addCurStep+d));
+  renderAddSteps(); saveDraft(); window.scrollTo(0,0);
+};
+function saveDraft(){
+  try{
+    var d={ tags:addTags, step:addCurStep };
+    ['fn','fla','fem','fd','fsh','fpr','fw','floc','fno'].forEach(function(k){ d[k]=aval(k); });
+    var any = d.fn||d.fla||d.fsh||d.fpr||d.fno||(addTags&&addTags.length);
+    if(any) localStorage.setItem('plant_draft', JSON.stringify(d));
+  }catch(e){}
+}
+function loadDraft(){
+  try{
+    var d=JSON.parse(localStorage.getItem('plant_draft')||'null');
+    var banner=document.getElementById('draft-banner');
+    if(!d){ if(banner) banner.style.display='none'; addCurStep=0; return; }
+    ['fn','fla','fem','fd','fsh','fpr','fw','floc','fno'].forEach(function(k){ var e=document.getElementById(k); if(e&&d[k]!=null) e.value=d[k]; });
+    addTags=(d.tags||[]).slice(); renderTagPills('add',addTags);
+    addCurStep=d.step||0;
+    if(banner) banner.style.display='flex';
+  }catch(e){ addCurStep=0; }
+}
+function clearDraft(){ try{ localStorage.removeItem('plant_draft'); }catch(e){} var b=document.getElementById('draft-banner'); if(b) b.style.display='none'; }
+window.saveDraft = saveDraft;
+window.discardDraft = function(){
+  ['fn','fla','fem','fd','fsh','fpr','fw','floc','fno'].forEach(function(k){ var e=document.getElementById(k); if(e) e.value=''; });
+  addTags=[]; renderTagPills('add',[]);
+  newCoverData=''; newCoverFile=null; resetCoverPreview();
+  addCurStep=0; clearDraft(); renderAddSteps();
+  window.toast('已清除草稿');
 };
 
 window.askDel = function() {
@@ -2089,43 +2330,6 @@ window.saveKnow = function() {
 };
 // ── END KNOWLEDGE BASE ─────────────────────────────────
 
-// ── AI QUERY ───────────────────────────────────────────
-window.queryAI = function() {
-  var p = plants.find(function(x){ return x.fbKey===cur; }); if(!p) return;
-  var resultEl = document.getElementById('ai-result');
-  var name = p.name + (p.latin ? ' ('+p.latin+')' : '');
-  resultEl.innerHTML = '<span class="ai-loading"></span>查詢中，請稍候...';
-
-  fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{
-        role: 'user',
-        content: '請用繁體中文簡潔說明「'+name+'」這種植物的照護方式，包含：\n'
-          + '1. 澆水頻率與注意事項\n'
-          + '2. 光線需求\n'
-          + '3. 溫度與濕度要求\n'
-          + '4. 常見問題與注意事項\n'
-          + '5. 施肥建議\n'
-          + '\n'
-          + '請用條列式回答，每項簡短扼要。'
-      }]
-    })
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(data){
-    var text = data.content && data.content[0] ? data.content[0].text : '查詢失敗，請稍後再試';
-    resultEl.textContent = text;
-  })
-  .catch(function(err){
-    resultEl.textContent = '查詢失敗：' + err.message;
-  });
-};
-// ── END AI QUERY ───────────────────────────────────────
-
 window.closeOv = function(){ document.getElementById('del-ov').classList.remove('show'); };
 
 // Cover position
@@ -2152,6 +2356,14 @@ window.openEdit = function() {
   document.getElementById('ew').value = p.wdays||7;
   document.getElementById('elastW').value = p.lastW||'';
   document.getElementById('eno').value = p.note||'';
+  document.getElementById('eloc').value = p.location||'';
+  document.getElementById('estatus').value = p.status||'';
+  document.getElementById('emother').value = p.mother||'';
+  document.getElementById('efather').value = p.father||'';
+  document.getElementById('elineage').value = p.lineageNote||'';
+  document.getElementById('eship').value = p.shipping||'';
+  document.getElementById('esupply').value = p.supplyCost||'';
+  document.getElementById('esold').value = p.soldPrice||'';
   editTags = (p.tags||[]).slice();
   renderTagPills('edit', editTags);
 
@@ -2241,6 +2453,14 @@ window.saveEdit = function() {
     wdays: parseInt(document.getElementById('ew').value)||7,
     lastW: document.getElementById('elastW').value || new Date().toISOString().split('T')[0],
     note: document.getElementById('eno').value.trim(),
+    location: document.getElementById('eloc').value.trim(),
+    status: document.getElementById('estatus').value,
+    mother: document.getElementById('emother').value.trim(),
+    father: document.getElementById('efather').value.trim(),
+    lineageNote: document.getElementById('elineage').value.trim(),
+    shipping: parseInt(document.getElementById('eship').value)||0,
+    supplyCost: parseInt(document.getElementById('esupply').value)||0,
+    soldPrice: parseInt(document.getElementById('esold').value)||0,
     coverX: editCoverX,
     coverY: editCoverY,
     tags: editTags.slice()
